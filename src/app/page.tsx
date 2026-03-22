@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import ConnectionMap from '@/components/ConnectionMap';
 import AgentRegistry from '@/components/AgentRegistry';
 import AgentWorkspace from '@/components/AgentWorkspace';
 import ActivityFeed from '@/components/ActivityFeed';
@@ -12,22 +13,46 @@ export default function Lab() {
 
   return (
     <div className="h-screen flex flex-col">
-      {/* Top bar */}
-      <div className="h-9 border-b border-[#2a2a2a] flex items-center justify-between px-4 shrink-0">
-        <div className="text-[11px] text-[#555] uppercase tracking-[0.08em]">Brody Lab</div>
-        <div className="flex items-center gap-3 text-[11px] text-[#555]">
-          <span className="flex items-center gap-1.5">
-            <span
-              className="w-1.5 h-1.5 bg-[#4ade80]"
-              style={{ animation: 'pulse-dot 2s infinite' }}
-            />
-            {agents.filter((a) => a.status === 'active').length} active
-          </span>
-          <span>{agents.length} total</span>
+      {/* Header */}
+      <div className="border-b border-[#2a2a2a] px-4 py-3 shrink-0">
+        <div className="flex items-center justify-between">
+          <pre className="text-[#444] text-[10px] leading-none select-none">{`
+ █████╗  ██████╗ ███████╗███╗   ██╗████████╗
+██╔══██╗██╔════╝ ██╔════╝████╗  ██║╚══██╔══╝
+███████║██║  ███╗█████╗  ██╔██╗ ██║   ██║
+██╔══██║██║   ██║██╔══╝  ██║╚██╗██║   ██║
+██║  ██║╚██████╔╝███████╗██║ ╚████║   ██║
+╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝   ╚═╝
+
+██╗███╗   ██╗████████╗███████╗██╗     ██╗     ██╗ ██████╗ ███████╗███╗   ██╗ ██████╗███████╗
+██║████╗  ██║╚══██╔══╝██╔════╝██║     ██║     ██║██╔════╝ ██╔════╝████╗  ██║██╔════╝██╔════╝
+██║██╔██╗ ██║   ██║   █████╗  ██║     ██║     ██║██║  ███╗█████╗  ██╔██╗ ██║██║     █████╗
+██║██║╚██╗██║   ██║   ██╔══╝  ██║     ██║     ██║██║   ██║██╔══╝  ██║╚██╗██║██║     ██╔══╝
+██║██║ ╚████║   ██║   ███████╗███████╗███████╗██║╚██████╔╝███████╗██║ ╚████║╚██████╗███████╗
+╚═╝╚═╝  ╚═══╝   ╚═╝   ╚══════╝╚══════╝╚══════╝╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚══════╝`.trimStart()}</pre>
+          <div className="flex flex-col items-end gap-1 text-[11px] text-[#555]">
+            <span className="flex items-center gap-1.5">
+              <span
+                className="w-1.5 h-1.5 bg-[#4ade80]"
+                style={{ animation: 'pulse-dot 2s infinite' }}
+              />
+              {agents.filter((a) => a.status === 'active').length} active
+            </span>
+            <span>{agents.length} agents registered</span>
+          </div>
         </div>
       </div>
 
-      {/* Three columns */}
+      {/* Connection Map */}
+      <div className="h-[280px] shrink-0 border-b border-[#2a2a2a] bg-[#111111]">
+        <ConnectionMap
+          agents={agents}
+          selectedId={selectedId}
+          onSelect={setSelectedId}
+        />
+      </div>
+
+      {/* Three columns — workbench */}
       <div className="flex-1 flex min-h-0">
         {/* Left — Agent Registry */}
         <div className="w-56 shrink-0">
