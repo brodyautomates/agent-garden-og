@@ -1,6 +1,6 @@
 'use client';
 
-import { Agent } from '@/lib/types';
+import { Agent, RunStatus } from '@/lib/types';
 
 const statusColor: Record<string, string> = {
   active: '#00ff88',
@@ -121,9 +121,11 @@ interface Props {
   agents: Agent[];
   selectedId: string | null;
   onSelect: (id: string) => void;
+  onRunAgent: (id: string) => void;
+  runningAgents: Record<string, RunStatus>;
 }
 
-export default function AgentRegistry({ agents, selectedId, onSelect }: Props) {
+export default function AgentRegistry({ agents, selectedId, onSelect, onRunAgent, runningAgents }: Props) {
   const categories = [...new Set(agents.map((a) => a.category))];
 
   return (
@@ -166,7 +168,7 @@ export default function AgentRegistry({ agents, selectedId, onSelect }: Props) {
                   <button
                     key={agent.id}
                     onClick={() => onSelect(agent.id)}
-                    className={`w-full text-left px-4 py-2.5 flex items-center gap-3 cursor-pointer transition-all duration-150 ${
+                    className={`w-full text-left px-4 py-2.5 flex items-center gap-3 cursor-pointer transition-all duration-150 group/agent ${
                       isSelected
                         ? 'bg-[var(--accent-glow)]'
                         : 'hover:bg-[var(--bg-card-hover)]'
@@ -198,15 +200,24 @@ export default function AgentRegistry({ agents, selectedId, onSelect }: Props) {
                       )}
                     </div>
 
-                    {/* Status dot */}
-                    <span
-                      className="w-2 h-2 rounded-full shrink-0"
-                      style={{
-                        backgroundColor: statusColor[agent.status],
-                        animation: agent.status === 'active' ? 'pulse-dot 2s infinite' : 'none',
-                        boxShadow: agent.status === 'active' ? '0 0 6px rgba(0, 255, 136, 0.4)' : 'none',
-                      }}
-                    />
+                    {/* Play button (visible on hover) / Status dot */}
+                    {runningAgents[agent.id] === 'running' ? (
+                      <span
+                        className="w-3.5 h-3.5 rounded-full border-2 border-t-transparent shrink-0"
+                        style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent', animation: 'spin-slow 1s linear infinite' }}
+                      />
+                    ) : (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); onRunAgent(agent.id); }}
+                        className="w-5 h-5 rounded flex items-center justify-center shrink-0 opacity-0 group-hover/agent:opacity-100 transition-opacity"
+                        style={{ background: 'var(--accent-dim)' }}
+                        title={`Run ${agent.name}`}
+                      >
+                        <svg width="8" height="8" viewBox="0 0 8 8" fill="var(--accent)">
+                          <path d="M1 0.5L7 4L1 7.5V0.5Z" />
+                        </svg>
+                      </button>
+                    )}
                   </button>
                 );
               })}

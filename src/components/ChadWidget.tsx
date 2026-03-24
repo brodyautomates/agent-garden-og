@@ -7,6 +7,8 @@ interface Props {
   agents: Agent[];
   isSelected: boolean;
   onOpenChat: () => void;
+  onRunAll: () => void;
+  isRunningAll: boolean;
 }
 
 // Pixel grid face — 13x15 grid, each cell is a tiny square
@@ -80,13 +82,13 @@ function ChadFace({ size = 48 }: { size?: number }) {
 
 export { ChadFace };
 
-export default function ChadWidget({ agent, agents, isSelected, onOpenChat }: Props) {
+export default function ChadWidget({ agent, agents, isSelected, onOpenChat, onRunAll, isRunningAll }: Props) {
   const m = agent.master!;
   const workerCount = agents.filter((a) => a.role === 'worker').length;
   const activeDepts = m.departments.filter((d) => d.status === 'active').length;
 
   return (
-    <button onClick={onOpenChat} className="cursor-pointer group relative">
+    <div className="group relative">
       {/* Red orbiting glow — conic gradient rotates behind the card */}
       <div
         className="absolute -inset-[2px] rounded-2xl overflow-hidden"
@@ -152,8 +154,39 @@ export default function ChadWidget({ agent, agents, isSelected, onOpenChat }: Pr
           <Stat label="Agents" value={workerCount.toString()} />
           <Stat label="Queue" value={m.buildQueue.length.toString()} />
         </div>
+
+        {/* Divider */}
+        <div className="w-12 h-px bg-[rgba(255,255,255,0.06)]" />
+
+        {/* Action buttons */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={(e) => { e.stopPropagation(); onOpenChat(); }}
+            className="px-3 py-1.5 rounded-lg text-[9px] uppercase tracking-wider transition-all cursor-pointer"
+            style={{
+              background: 'var(--chad-red-dim)',
+              color: 'var(--chad-red)',
+              border: '1px solid rgba(255, 51, 51, 0.2)',
+            }}
+          >
+            Talk
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onRunAll(); }}
+            disabled={isRunningAll}
+            className="px-3 py-1.5 rounded-lg text-[9px] uppercase tracking-wider transition-all cursor-pointer disabled:opacity-40"
+            style={{
+              background: 'var(--accent-dim)',
+              color: 'var(--accent)',
+              border: '1px solid var(--border-active)',
+              animation: isRunningAll ? 'glow-pulse 1s infinite' : undefined,
+            }}
+          >
+            {isRunningAll ? 'Running...' : 'Run All'}
+          </button>
+        </div>
       </div>
-    </button>
+    </div>
   );
 }
 

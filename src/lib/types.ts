@@ -55,6 +55,42 @@ export interface ChatMessage {
   timestamp: string;
 }
 
+export type RunStatus = 'idle' | 'running' | 'success' | 'error';
+
+export interface AgentRunReport {
+  id: string;
+  agentId: string;
+  agentName: string;
+  status: RunStatus;
+  startedAt: string;
+  completedAt: string | null;
+  input: Record<string, unknown>;
+  output: Record<string, unknown> | null;
+  outputSummary: string;
+  error: string | null;
+  duration: string | null;
+}
+
+export interface AgentCommunication {
+  id: string;
+  fromAgentId: string;
+  fromAgentName: string;
+  toAgentId: string;
+  toAgentName: string;
+  message: string;
+  timestamp: string;
+  type: 'dispatch' | 'report' | 'data-transfer' | 'error';
+}
+
+export interface OpticsMission {
+  id: string;
+  triggeredBy: string;
+  startedAt: string;
+  status: RunStatus;
+  reports: AgentRunReport[];
+  communications: AgentCommunication[];
+}
+
 export interface ActivityEntry {
   id: string;
   agentId: string;

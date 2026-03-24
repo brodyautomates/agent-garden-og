@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Agent, ActivityEntry } from '@/lib/types';
+import { Agent, ActivityEntry, RunStatus } from '@/lib/types';
 
 interface Lead {
   id: string;
@@ -29,9 +29,11 @@ interface IrisResult {
 interface Props {
   agent: Agent;
   activity: ActivityEntry[];
+  onRunAgent: (agentId: string) => void;
+  runStatus: RunStatus;
 }
 
-export default function IrisWorkspace({ agent, activity }: Props) {
+export default function IrisWorkspace({ agent, activity, onRunAgent, runStatus }: Props) {
   const [isRunning, setIsRunning] = useState(false);
   const [result, setResult] = useState<IrisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -96,11 +98,25 @@ export default function IrisWorkspace({ agent, activity }: Props) {
             <div className="flex items-center gap-2.5">
               <h2 className="text-[15px] text-[var(--text-primary)]">IRIS</h2>
               <span className="text-[10px] uppercase tracking-[0.06em] px-2 py-0.5 rounded-full bg-[var(--accent-dim)] text-[var(--accent)]">
-                {isRunning ? 'Running' : 'Active'}
+                {isRunning || runStatus === 'running' ? 'Running' : 'Active'}
               </span>
             </div>
             <p className="text-[12px] text-[var(--text-secondary)] mt-0.5">{agent.description}</p>
           </div>
+          {/* Run button — prominent */}
+          <button
+            onClick={() => onRunAgent(agent.id)}
+            disabled={runStatus === 'running' || isRunning}
+            className="px-4 py-2 rounded-lg text-[11px] uppercase tracking-wider transition-all shrink-0 disabled:opacity-40"
+            style={{
+              background: runStatus === 'running' ? 'var(--bg-card)' : 'var(--accent-dim)',
+              color: 'var(--accent)',
+              border: '1px solid var(--border-active)',
+              animation: runStatus === 'running' ? 'glow-pulse 1s infinite' : undefined,
+            }}
+          >
+            {runStatus === 'running' ? 'Running...' : 'Run Iris'}
+          </button>
         </div>
       </div>
 

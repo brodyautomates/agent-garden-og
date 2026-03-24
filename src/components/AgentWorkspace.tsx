@@ -1,6 +1,6 @@
 'use client';
 
-import { Agent, ActivityEntry } from '@/lib/types';
+import { Agent, ActivityEntry, RunStatus } from '@/lib/types';
 import MasterWorkspace from './MasterWorkspace';
 import IrisWorkspace from './IrisWorkspace';
 
@@ -20,9 +20,11 @@ interface Props {
   agent: Agent | null;
   agents: Agent[];
   activity: ActivityEntry[];
+  onRunAgent: (agentId: string) => void;
+  runningAgents: Record<string, RunStatus>;
 }
 
-export default function AgentWorkspace({ agent, agents, activity }: Props) {
+export default function AgentWorkspace({ agent, agents, activity, onRunAgent, runningAgents }: Props) {
   if (!agent) {
     return (
       <div className="h-full flex items-center justify-center bg-[var(--bg-primary)]">
@@ -45,7 +47,7 @@ export default function AgentWorkspace({ agent, agents, activity }: Props) {
 
   // Iris gets her own workspace with run button
   if (agent.id === 'iris') {
-    return <IrisWorkspace agent={agent} activity={activity} />;
+    return <IrisWorkspace agent={agent} activity={activity} onRunAgent={onRunAgent} runStatus={runningAgents['iris'] || 'idle'} />;
   }
 
   const agentActivity = activity.filter((a) => a.agentId === agent.id).slice(0, 10);
@@ -88,6 +90,22 @@ export default function AgentWorkspace({ agent, agents, activity }: Props) {
           </div>
           {agent.brand && (
             <span className="text-[11px] text-[var(--text-muted)] shrink-0 mono">{agent.brand}</span>
+          )}
+          {/* Run button */}
+          {agent.role === 'worker' && (
+            <button
+              onClick={() => onRunAgent(agent.id)}
+              disabled={runningAgents[agent.id] === 'running'}
+              className="px-3 py-1.5 rounded-lg text-[10px] uppercase tracking-wider transition-all shrink-0 disabled:opacity-40"
+              style={{
+                background: runningAgents[agent.id] === 'running' ? 'var(--bg-card)' : 'var(--accent-dim)',
+                color: 'var(--accent)',
+                border: '1px solid var(--border-active)',
+                animation: runningAgents[agent.id] === 'running' ? 'glow-pulse 1s infinite' : undefined,
+              }}
+            >
+              {runningAgents[agent.id] === 'running' ? 'Running...' : 'Run'}
+            </button>
           )}
         </div>
       </div>
