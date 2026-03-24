@@ -135,7 +135,7 @@ export default function ConnectionMap({ agents, selectedId, onSelect }: Props) {
     const w = dimensions.width;
     const h = dimensions.height;
     const cx = w / 2;
-    const cy = h / 2;
+    const cy = h * 0.58; // offset down so agents don't overlap Chad widget
 
     const draw = () => {
       if (!running) return;
