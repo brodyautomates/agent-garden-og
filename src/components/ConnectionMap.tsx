@@ -341,7 +341,7 @@ export default function ConnectionMap({ agents, selectedId, onSelect }: Props) {
 
         // Label
         const labelAlpha = isSelected ? 0.9 : isHovered ? 0.7 : 0.35;
-        ctx.font = `${isSelected ? 500 : 400} ${(isSelected ? 10.5 : 9.5) * dpr}px Inter, sans-serif`;
+        ctx.font = `${isSelected ? 500 : 400} ${(isSelected ? 10.5 : 9.5) * dpr}px Brockmann, sans-serif`;
         ctx.textAlign = 'center';
         ctx.fillStyle = `rgba(232, 232, 237, ${labelAlpha})`;
         ctx.fillText(
@@ -352,7 +352,7 @@ export default function ConnectionMap({ agents, selectedId, onSelect }: Props) {
 
         // Brand sublabel
         if (agent.brand) {
-          ctx.font = `400 ${7.5 * dpr}px Inter, sans-serif`;
+          ctx.font = `400 ${7.5 * dpr}px Brockmann, sans-serif`;
           ctx.fillStyle = `rgba(232, 232, 237, ${labelAlpha * 0.5})`;
           ctx.fillText(agent.brand, x, y + (isSelected ? 28 : 26) * dpr);
         }

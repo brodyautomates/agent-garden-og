@@ -18,17 +18,9 @@ export default function Lab() {
       {/* Header */}
       <header className="shrink-0 px-5 py-4 flex items-center justify-between border-b border-[var(--border)]">
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#00ff88] to-[#00cc6a] flex items-center justify-center">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M8 1L14 4.5V11.5L8 15L2 11.5V4.5L8 1Z" stroke="#0a0a0f" strokeWidth="1.5" fill="none" />
-                <circle cx="8" cy="8" r="2" fill="#0a0a0f" />
-              </svg>
-            </div>
-            <div>
-              <h1 className="text-[15px] font-semibold text-[var(--text-primary)] tracking-tight">AGENT GARDEN</h1>
-              <p className="text-[11px] text-[var(--text-muted)] -mt-0.5">Autonomous AI Hub</p>
-            </div>
+          <div className="flex items-center gap-3">
+            <img src="/logo.png" alt="agentlab" className="w-8 h-8" />
+            <h1 className="text-[16px] text-[var(--text-primary)] tracking-wide uppercase">agentlab</h1>
           </div>
         </div>
 
