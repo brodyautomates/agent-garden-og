@@ -210,13 +210,11 @@ export default function ConnectionMap({ agents, selectedId, onSelect }: Props) {
         ctx.fill();
       });
 
-      // Draw edges — white lines between all connected agents
-      agents.forEach(agent => {
-        const n1 = nodes.find(n => n.id === agent.id);
-        if (!n1) return;
-        agent.connectedTo.forEach(tid => {
-          const n2 = nodes.find(n => n.id === tid);
-          if (!n2) return;
+      // Draw edges — white lines between EVERY pair of nodes (full mesh web)
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const n1 = nodes[i];
+          const n2 = nodes[j];
 
           const isSelected = selId && (selId === n1.id || selId === n2.id);
 
@@ -226,63 +224,63 @@ export default function ConnectionMap({ agents, selectedId, onSelect }: Props) {
           const dist = Math.sqrt(dx * dx + dy * dy);
           const nx = -dy / (dist || 1);
           const ny = dx / (dist || 1);
-          const wobble = Math.sin(t * 0.5 + n1.phase + n2.phase) * 8;
+          const wobble = Math.sin(t * 0.5 + n1.phase + n2.phase) * 6;
           const cpx = (n1.x + n2.x) / 2 + nx * wobble;
           const cpy = (n1.y + n2.y) / 2 + ny * wobble;
 
-          // Glow layer — always visible
-          ctx.beginPath();
-          ctx.moveTo(n1.x * dpr, n1.y * dpr);
-          ctx.quadraticCurveTo(cpx * dpr, cpy * dpr, n2.x * dpr, n2.y * dpr);
+          // Glow layer
           if (isSelected) {
-            ctx.strokeStyle = 'rgba(255, 50, 50, 0.1)';
-          } else {
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
-          }
-          ctx.lineWidth = 6 * dpr;
-          ctx.stroke();
-
-          // Main line — white by default, red when selected
-          ctx.beginPath();
-          ctx.moveTo(n1.x * dpr, n1.y * dpr);
-          ctx.quadraticCurveTo(cpx * dpr, cpy * dpr, n2.x * dpr, n2.y * dpr);
-          if (isSelected) {
-            ctx.strokeStyle = 'rgba(255, 50, 50, 0.5)';
-            ctx.lineWidth = 1.5 * dpr;
-          } else {
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
-            ctx.lineWidth = 0.8 * dpr;
-          }
-          ctx.stroke();
-
-          // Traveling particle on all edges
-          const progress = (t * 0.3 + n1.phase) % 1;
-          const tp = progress;
-          const invT = 1 - tp;
-          const px = invT * invT * n1.x + 2 * invT * tp * cpx + tp * tp * n2.x;
-          const py = invT * invT * n1.y + 2 * invT * tp * cpy + tp * tp * n2.y;
-
-          const dotColor = isSelected ? '255, 50, 50' : '0, 255, 136';
-
-          ctx.beginPath();
-          ctx.arc(px * dpr, py * dpr, 1.5 * dpr, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(${dotColor}, 0.5)`;
-          ctx.fill();
-
-          // Trail
-          for (let tr = 1; tr <= 3; tr++) {
-            const tpT = ((t * 0.3 + n1.phase) - tr * 0.03) % 1;
-            const tpTc = tpT < 0 ? tpT + 1 : tpT;
-            const invTT = 1 - tpTc;
-            const trx = invTT * invTT * n1.x + 2 * invTT * tpTc * cpx + tpTc * tpTc * n2.x;
-            const trY = invTT * invTT * n1.y + 2 * invTT * tpTc * cpy + tpTc * tpTc * n2.y;
             ctx.beginPath();
-            ctx.arc(trx * dpr, trY * dpr, (1.2 - tr * 0.3) * dpr, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(${dotColor}, ${0.3 - tr * 0.08})`;
-            ctx.fill();
+            ctx.moveTo(n1.x * dpr, n1.y * dpr);
+            ctx.quadraticCurveTo(cpx * dpr, cpy * dpr, n2.x * dpr, n2.y * dpr);
+            ctx.strokeStyle = 'rgba(255, 50, 50, 0.08)';
+            ctx.lineWidth = 5 * dpr;
+            ctx.stroke();
           }
-        });
-      });
+
+          // Main line — white mesh, red when touching selected node
+          ctx.beginPath();
+          ctx.moveTo(n1.x * dpr, n1.y * dpr);
+          ctx.quadraticCurveTo(cpx * dpr, cpy * dpr, n2.x * dpr, n2.y * dpr);
+          if (isSelected) {
+            ctx.strokeStyle = 'rgba(255, 50, 50, 0.35)';
+            ctx.lineWidth = 1.2 * dpr;
+          } else {
+            // Fade by distance for depth
+            const alphaBase = Math.max(0.03, 0.14 - dist * 0.0003);
+            ctx.strokeStyle = `rgba(255, 255, 255, ${alphaBase})`;
+            ctx.lineWidth = 0.6 * dpr;
+          }
+          ctx.stroke();
+
+          // Traveling particle on selected edges
+          if (isSelected) {
+            const speed = 0.25 + (i * 0.02);
+            const progress = (t * speed + n1.phase + n2.phase) % 1;
+            const tp = progress;
+            const invT = 1 - tp;
+            const px = invT * invT * n1.x + 2 * invT * tp * cpx + tp * tp * n2.x;
+            const py = invT * invT * n1.y + 2 * invT * tp * cpy + tp * tp * n2.y;
+
+            ctx.beginPath();
+            ctx.arc(px * dpr, py * dpr, 1.5 * dpr, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255, 50, 50, 0.5)';
+            ctx.fill();
+
+            for (let tr = 1; tr <= 3; tr++) {
+              const tpT = ((t * speed + n1.phase + n2.phase) - tr * 0.03) % 1;
+              const tpTc = tpT < 0 ? tpT + 1 : tpT;
+              const invTT = 1 - tpTc;
+              const trx = invTT * invTT * n1.x + 2 * invTT * tpTc * cpx + tpTc * tpTc * n2.x;
+              const trY = invTT * invTT * n1.y + 2 * invTT * tpTc * cpy + tpTc * tpTc * n2.y;
+              ctx.beginPath();
+              ctx.arc(trx * dpr, trY * dpr, (1.2 - tr * 0.3) * dpr, 0, Math.PI * 2);
+              ctx.fillStyle = `rgba(255, 50, 50, ${0.3 - tr * 0.08})`;
+              ctx.fill();
+            }
+          }
+        }
+      }
 
       // Draw nodes — all green/glowing, red when selected
       nodes.forEach(node => {
