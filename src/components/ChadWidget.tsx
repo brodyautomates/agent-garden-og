@@ -113,7 +113,7 @@ export default function ChadWidget({ agent, agents, isSelected, onOpenChat }: Pr
 
       {/* Glass card — sits above the glow */}
       <div
-        className="relative rounded-xl px-6 py-4 flex items-center gap-5"
+        className="relative rounded-xl px-6 py-4 flex flex-col items-center gap-2.5"
         style={{
           background: 'rgba(10, 10, 15, 0.85)',
           backdropFilter: 'blur(24px)',
@@ -122,27 +122,28 @@ export default function ChadWidget({ agent, agents, isSelected, onOpenChat }: Pr
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.03)',
         }}
       >
-        {/* Terminal face */}
+        {/* Face */}
         <ChadFace size={48} />
 
-        {/* Identity */}
-        <div className="flex items-center gap-2.5">
+        {/* Name + badge */}
+        <div className="flex items-center gap-2">
           <span
-            className="w-2 h-2 rounded-full shrink-0"
+            className="w-1.5 h-1.5 rounded-full shrink-0"
             style={{
               backgroundColor: 'var(--chad-red)',
               animation: 'pulse-dot 2s infinite',
               boxShadow: '0 0 8px rgba(255,51,51,0.5)',
             }}
           />
-          <span className="text-[16px] text-[var(--text-primary)] tracking-wide uppercase">CHAD</span>
+          <span className="text-[14px] text-[var(--text-primary)] tracking-wide uppercase">CHAD</span>
           <span className="text-[8px] uppercase tracking-[0.1em] px-1.5 py-0.5 rounded-full text-[var(--chad-red)]"
             style={{ background: 'var(--chad-red-dim)' }}>
             Master
           </span>
         </div>
 
-        <div className="w-px h-6 bg-[rgba(255,255,255,0.06)]" />
+        {/* Divider */}
+        <div className="w-12 h-px bg-[rgba(255,255,255,0.06)]" />
 
         {/* Stats */}
         <div className="flex items-center gap-4">
