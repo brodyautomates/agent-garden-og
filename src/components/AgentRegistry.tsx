@@ -92,6 +92,13 @@ function AgentIcon({ agentId, color }: { agentId: string; color: string }) {
           <path d="M19 10c1.5 1 1.5 3 0 4" />
         </svg>
       );
+    // Chad — crown
+    case 'chad':
+      return (
+        <svg {...props}>
+          <path d="M2 20h20M4 20l2-14 4 6 2-8 2 8 4-6 2 14" />
+        </svg>
+      );
     default:
       return (
         <svg {...props}>
@@ -109,7 +116,10 @@ interface Props {
 }
 
 export default function AgentRegistry({ agents, selectedId, onSelect }: Props) {
-  const categories = [...new Set(agents.map((a) => a.category))];
+  // Master agents first, then group workers by category
+  const masterAgents = agents.filter((a) => a.role === 'master');
+  const workerAgents = agents.filter((a) => a.role === 'worker');
+  const categories = [...new Set(workerAgents.map((a) => a.category))];
 
   return (
     <div className="h-full flex flex-col border-r border-[var(--border)] bg-[var(--bg-secondary)]">
@@ -135,6 +145,57 @@ export default function AgentRegistry({ agents, selectedId, onSelect }: Props) {
             <p className="text-[10px] text-[var(--text-muted)] mt-1 opacity-50">The garden is empty</p>
           </div>
         )}
+        {/* Master agents */}
+        {masterAgents.length > 0 && (
+          <div>
+            <div className="px-4 pt-3 pb-1.5">
+              <span className="text-[10px] font-medium text-[var(--accent)] uppercase tracking-[0.1em]">
+                Master
+              </span>
+            </div>
+            {masterAgents.map((agent) => {
+              const isSelected = selectedId === agent.id;
+              const iconColor = isSelected ? 'var(--accent)' : 'var(--accent)';
+              return (
+                <button
+                  key={agent.id}
+                  onClick={() => onSelect(agent.id)}
+                  className={`w-full text-left px-4 py-2.5 flex items-center gap-3 cursor-pointer transition-all duration-150 ${
+                    isSelected
+                      ? 'bg-[var(--accent-glow)]'
+                      : 'hover:bg-[var(--bg-card-hover)]'
+                  }`}
+                >
+                  <div
+                    className="w-7 h-7 rounded-md flex items-center justify-center shrink-0"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(0,255,136,0.2), rgba(0,255,136,0.05))',
+                      border: '1px solid var(--border-active)',
+                      boxShadow: '0 0 8px rgba(0, 255, 136, 0.15)',
+                    }}
+                  >
+                    <AgentIcon agentId={agent.id} color={iconColor} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <span className={`text-[12px] font-medium ${isSelected ? 'text-[var(--text-primary)]' : 'text-[var(--accent)]'}`}>
+                      {agent.name}
+                    </span>
+                  </div>
+                  <span
+                    className="w-2 h-2 rounded-full shrink-0"
+                    style={{
+                      backgroundColor: '#00ff88',
+                      animation: 'pulse-dot 2s infinite',
+                      boxShadow: '0 0 6px rgba(0, 255, 136, 0.4)',
+                    }}
+                  />
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Worker agents by category */}
         {categories.map((cat) => (
           <div key={cat}>
             <div className="px-4 pt-3 pb-1.5">
@@ -142,7 +203,7 @@ export default function AgentRegistry({ agents, selectedId, onSelect }: Props) {
                 {cat}
               </span>
             </div>
-            {agents
+            {workerAgents
               .filter((a) => a.category === cat)
               .map((agent) => {
                 const isSelected = selectedId === agent.id;

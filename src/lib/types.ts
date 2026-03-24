@@ -1,11 +1,28 @@
 export type AgentStatus = 'active' | 'idle' | 'error';
+export type AgentRole = 'master' | 'worker';
+
+export interface Department {
+  name: string;
+  status: 'planned' | 'building' | 'active';
+  agentIds: string[];
+  description: string;
+}
+
+export interface AgentBlueprint {
+  name: string;
+  department: string;
+  purpose: string;
+  status: 'queued' | 'building' | 'deployed';
+  priority: number; // 1 = next up
+}
 
 export interface Agent {
   id: string;
   name: string;
   description: string;
   status: AgentStatus;
-  category: 'outreach' | 'content' | 'ads' | 'ops' | 'research' | 'custom';
+  role: AgentRole;
+  category: 'outreach' | 'content' | 'ads' | 'ops' | 'research' | 'sales' | 'finance' | 'product' | 'custom';
   brand?: string;
   connectedTo: string[];
   config: {
@@ -17,6 +34,17 @@ export interface Agent {
     runs: number;
     lastRun: string;
     avgDuration: string;
+  };
+  // Master agent fields
+  master?: {
+    businessModel: string;
+    businessName: string;
+    objective: string;
+    revenue: string;
+    departments: Department[];
+    buildQueue: AgentBlueprint[];
+    directives: string[];
+    constraints: string[];
   };
 }
 

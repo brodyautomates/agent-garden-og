@@ -1,6 +1,7 @@
 'use client';
 
 import { Agent, ActivityEntry } from '@/lib/types';
+import MasterWorkspace from './MasterWorkspace';
 
 const statusColor: Record<string, string> = {
   active: '#00ff88',
@@ -36,6 +37,11 @@ export default function AgentWorkspace({ agent, agents, activity }: Props) {
     );
   }
 
+  // Master agent gets its own workspace
+  if (agent.role === 'master' && agent.master) {
+    return <MasterWorkspace agent={agent} agents={agents} activity={activity} />;
+  }
+
   const agentActivity = activity.filter((a) => a.agentId === agent.id).slice(0, 10);
   const connectedAgents = agents.filter((a) => agent.connectedTo.includes(a.id));
   const feedsFrom = agents.filter((a) => a.connectedTo.includes(agent.id));
@@ -61,9 +67,9 @@ export default function AgentWorkspace({ agent, agents, activity }: Props) {
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2.5">
-              <h2 className="text-[15px] font-semibold text-[var(--text-primary)] truncate">{agent.name}</h2>
+              <h2 className="text-[15px] text-[var(--text-primary)] truncate">{agent.name}</h2>
               <span
-                className="text-[10px] font-medium uppercase tracking-[0.06em] px-2 py-0.5 rounded-full"
+                className="text-[10px] uppercase tracking-[0.06em] px-2 py-0.5 rounded-full"
                 style={{
                   color: statusColor[agent.status],
                   background: isActive ? 'var(--accent-dim)' : agent.status === 'error' ? 'var(--error-dim)' : 'var(--bg-card)',
@@ -89,14 +95,14 @@ export default function AgentWorkspace({ agent, agents, activity }: Props) {
         ].map((stat) => (
           <div key={stat.label} className="flex-1 py-2 px-3 rounded-lg bg-[var(--bg-card)] border border-[var(--border)]">
             <div className="text-[10px] text-[var(--text-muted)] uppercase tracking-[0.06em] mb-0.5">{stat.label}</div>
-            <div className="text-[14px] font-semibold text-[var(--text-primary)] mono">{stat.value}</div>
+            <div className="text-[14px] text-[var(--text-primary)] mono">{stat.value}</div>
           </div>
         ))}
       </div>
 
       {/* Activity log */}
       <div className="px-5 py-4 border-b border-[var(--border)]">
-        <h3 className="text-[11px] font-medium text-[var(--text-muted)] uppercase tracking-[0.08em] mb-3">Recent Activity</h3>
+        <h3 className="text-[11px] text-[var(--text-muted)] uppercase tracking-[0.08em] mb-3">Recent Activity</h3>
         {agentActivity.length === 0 ? (
           <div className="text-[12px] text-[var(--text-muted)] py-3 text-center">No recent activity</div>
         ) : (
@@ -117,7 +123,7 @@ export default function AgentWorkspace({ agent, agents, activity }: Props) {
 
       {/* Connections */}
       <div className="px-5 py-4 border-b border-[var(--border)]">
-        <h3 className="text-[11px] font-medium text-[var(--text-muted)] uppercase tracking-[0.08em] mb-3">Connections</h3>
+        <h3 className="text-[11px] text-[var(--text-muted)] uppercase tracking-[0.08em] mb-3">Connections</h3>
         <div className="space-y-2">
           {feedsFrom.length > 0 && (
             <div className="flex items-start gap-2">
@@ -161,7 +167,7 @@ export default function AgentWorkspace({ agent, agents, activity }: Props) {
 
       {/* Config */}
       <div className="px-5 py-4">
-        <h3 className="text-[11px] font-medium text-[var(--text-muted)] uppercase tracking-[0.08em] mb-3">Configuration</h3>
+        <h3 className="text-[11px] text-[var(--text-muted)] uppercase tracking-[0.08em] mb-3">Configuration</h3>
         <div className="space-y-2.5">
           {agent.config.schedule && (
             <div className="flex items-center gap-3">

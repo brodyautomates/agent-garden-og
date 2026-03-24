@@ -8,7 +8,9 @@ import ActivityFeed from '@/components/ActivityFeed';
 import { agents, activityFeed } from '@/lib/data';
 
 export default function Lab() {
-  const [selectedId, setSelectedId] = useState<string | null>(agents[0]?.id ?? null);
+  const [selectedId, setSelectedId] = useState<string | null>(
+    agents.find(a => a.role === 'master')?.id ?? agents[0]?.id ?? null
+  );
   const selectedAgent = agents.find((a) => a.id === selectedId) ?? null;
 
   const activeCount = agents.filter((a) => a.status === 'active').length;
