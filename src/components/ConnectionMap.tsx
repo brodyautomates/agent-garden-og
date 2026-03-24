@@ -3,16 +3,29 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { Agent } from '@/lib/types';
 
-const statusColor: Record<string, string> = {
-  active: '#00ff88',
-  idle: '#3a3a4e',
-  error: '#ff4466',
-};
+// 30 demo agent names that spawn in sequence
+const DEMO_NAMES = [
+  'CORE', 'SCRAPER', 'EMAILER', 'SCORER', 'AUDITOR',
+  'BUILDER', 'SCHEDULER', 'SCOUT', 'PITCHER', 'WRITER',
+  'ANALYST', 'MONITOR', 'DEPLOYER', 'ROUTER', 'PARSER',
+  'INDEXER', 'SYNCER', 'MAPPER', 'TRACKER', 'LINKER',
+  'ENCODER', 'RESOLVER', 'WATCHER', 'DISPATCHER', 'COMPILER',
+  'RENDERER', 'LISTENER', 'GATEWAY', 'ORCHESTRATOR', 'SENTINEL',
+];
 
-interface Props {
-  agents: Agent[];
-  selectedId: string | null;
-  onSelect: (id: string) => void;
+interface PhysicsNode {
+  id: string;
+  name: string;
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  targetX: number;
+  targetY: number;
+  spawnTime: number;
+  alive: boolean;
+  scale: number; // 0→1 pop-in
+  phase: number;
 }
 
 interface Particle {
@@ -25,124 +38,44 @@ interface Particle {
   size: number;
 }
 
-interface NodeState {
-  id: string;
+// Burst particles when a node spawns
+interface BurstParticle {
   x: number;
   y: number;
-  baseX: number;
-  baseY: number;
-  phase: number;
-  driftSpeed: number;
-  driftRadius: number;
+  vx: number;
+  vy: number;
+  life: number;
+  maxLife: number;
+}
+
+interface Props {
+  agents: Agent[];
+  selectedId: string | null;
+  onSelect: (id: string) => void;
 }
 
 export default function ConnectionMap({ agents, selectedId, onSelect }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const nodesRef = useRef<NodeState[]>([]);
+  const nodesRef = useRef<PhysicsNode[]>([]);
   const particlesRef = useRef<Particle[]>([]);
+  const burstsRef = useRef<BurstParticle[]>([]);
   const frameRef = useRef<number>(0);
   const timeRef = useRef<number>(0);
+  const spawnIndexRef = useRef<number>(0);
+  const lastSpawnRef = useRef<number>(0);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [hoveredId, setHoveredId] = useState<string | null>(null);
 
-  // Stable refs for animation callback
   const selectedIdRef = useRef(selectedId);
   const hoveredIdRef = useRef(hoveredId);
   selectedIdRef.current = selectedId;
   hoveredIdRef.current = hoveredId;
 
-  // Initialize node positions with force-directed seed
-  const initNodes = useCallback((w: number, h: number) => {
-    if (w === 0) return;
-
-    // Always seed ambient particles
-    const particles: Particle[] = [];
-    for (let i = 0; i < 40; i++) {
-      particles.push({
-        x: Math.random() * w,
-        y: Math.random() * h,
-        vx: (Math.random() - 0.5) * 0.15,
-        vy: (Math.random() - 0.5) * 0.15,
-        life: Math.random() * 200,
-        maxLife: 150 + Math.random() * 200,
-        size: 0.5 + Math.random() * 1.2,
-      });
-    }
-    particlesRef.current = particles;
-
-    if (agents.length === 0) {
-      nodesRef.current = [];
-      return;
-    }
-
-    const cx = w / 2;
-    const cy = h / 2;
-    const spread = Math.min(w, h) * 0.3;
-
-    // Seed positions
-    const nodes: NodeState[] = agents.map((a, i) => {
-      const angle = (i / agents.length) * Math.PI * 2 + Math.PI * 0.3;
-      const r = spread * (0.6 + ((i * 7 + 3) % 10) / 15);
-      const x = cx + Math.cos(angle) * r;
-      const y = cy + Math.sin(angle) * r;
-      return {
-        id: a.id,
-        x, y,
-        baseX: x,
-        baseY: y,
-        phase: Math.random() * Math.PI * 2,
-        driftSpeed: 0.3 + Math.random() * 0.4,
-        driftRadius: 3 + Math.random() * 6,
-      };
-    });
-
-    // Simple force sim to spread them out
-    const edgeSet = new Set<string>();
-    agents.forEach(a => a.connectedTo.forEach(t => {
-      edgeSet.add(`${a.id}:${t}`);
-    }));
-
-    for (let iter = 0; iter < 100; iter++) {
-      const temp = 1 - iter / 100;
-      for (let i = 0; i < nodes.length; i++) {
-        for (let j = i + 1; j < nodes.length; j++) {
-          const dx = nodes[i].x - nodes[j].x;
-          const dy = nodes[i].y - nodes[j].y;
-          const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-          const force = (5000 * temp) / (dist * dist);
-          nodes[i].x += (dx / dist) * force;
-          nodes[i].y += (dy / dist) * force;
-          nodes[j].x -= (dx / dist) * force;
-          nodes[j].y -= (dy / dist) * force;
-        }
-      }
-      agents.forEach(agent => {
-        const n1 = nodes.find(n => n.id === agent.id)!;
-        agent.connectedTo.forEach(tid => {
-          const n2 = nodes.find(n => n.id === tid);
-          if (!n2) return;
-          const dx = n2.x - n1.x;
-          const dy = n2.y - n1.y;
-          const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-          const force = (dist - 130) * 0.006 * temp;
-          n1.x += (dx / dist) * force;
-          n1.y += (dy / dist) * force;
-          n2.x -= (dx / dist) * force;
-          n2.y -= (dy / dist) * force;
-        });
-      });
-      nodes.forEach(n => {
-        n.x += (cx - n.x) * 0.003;
-        n.y += (cy - n.y) * 0.003;
-        n.x = Math.max(90, Math.min(w - 90, n.x));
-        n.y = Math.max(50, Math.min(h - 50, n.y));
-      });
-    }
-
-    nodes.forEach(n => { n.baseX = n.x; n.baseY = n.y; });
-    nodesRef.current = nodes;
-  }, [agents]);
+  // Use real agents if available, otherwise demo mode
+  const useDemo = agents.length === 0;
+  const agentsRef = useRef(agents);
+  agentsRef.current = agents;
 
   useEffect(() => {
     const update = () => {
@@ -150,211 +83,311 @@ export default function ConnectionMap({ agents, selectedId, onSelect }: Props) {
         const w = containerRef.current.offsetWidth;
         const h = containerRef.current.offsetHeight;
         setDimensions({ width: w, height: h });
-        initNodes(w, h);
+
+        // Reset on mount/resize — seed ambient particles
+        const particles: Particle[] = [];
+        for (let i = 0; i < 50; i++) {
+          particles.push({
+            x: Math.random() * w,
+            y: Math.random() * h,
+            vx: (Math.random() - 0.5) * 0.12,
+            vy: (Math.random() - 0.5) * 0.12,
+            life: Math.random() * 200,
+            maxLife: 150 + Math.random() * 250,
+            size: 0.4 + Math.random() * 1,
+          });
+        }
+        particlesRef.current = particles;
+
+        // Reset spawn state
+        nodesRef.current = [];
+        burstsRef.current = [];
+        spawnIndexRef.current = 0;
+        lastSpawnRef.current = 0;
+        timeRef.current = 0;
       }
     };
     update();
     window.addEventListener('resize', update);
     return () => window.removeEventListener('resize', update);
-  }, [initNodes]);
+  }, []);
 
-  // Animation loop
+  // Animation loop with live physics
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || dimensions.width === 0) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     let running = true;
+    const dpr = window.devicePixelRatio || 1;
+    const w = dimensions.width;
+    const h = dimensions.height;
+    const cx = w / 2;
+    const cy = h / 2;
 
     const draw = () => {
       if (!running) return;
-      const { width: w, height: h } = canvas;
       const t = timeRef.current;
       timeRef.current += 0.016;
 
-      ctx.clearRect(0, 0, w, h);
+      ctx.clearRect(0, 0, w * dpr, h * dpr);
 
-      const dpr = window.devicePixelRatio || 1;
       const nodes = nodesRef.current;
       const particles = particlesRef.current;
+      const bursts = burstsRef.current;
       const selId = selectedIdRef.current;
       const hovId = hoveredIdRef.current;
 
-      // Update node drift
-      nodes.forEach(n => {
-        n.x = n.baseX + Math.sin(t * n.driftSpeed + n.phase) * n.driftRadius;
-        n.y = n.baseY + Math.cos(t * n.driftSpeed * 0.7 + n.phase + 1) * n.driftRadius * 0.8;
-      });
+      // === SPAWN LOGIC ===
+      const totalToSpawn = useDemo ? DEMO_NAMES.length : agentsRef.current.length;
+      const spawnInterval = 0.12; // seconds between spawns — snappy
 
-      // Connected set
-      const connSet = new Set<string>();
-      if (selId) {
-        connSet.add(selId);
-        const selAgent = agents.find(a => a.id === selId);
-        if (selAgent) selAgent.connectedTo.forEach(id => connSet.add(id));
-        agents.forEach(a => { if (a.connectedTo.includes(selId)) connSet.add(a.id); });
+      if (spawnIndexRef.current < totalToSpawn && t - lastSpawnRef.current > spawnInterval) {
+        const idx = spawnIndexRef.current;
+        const name = useDemo ? DEMO_NAMES[idx] : agentsRef.current[idx].name;
+        const id = useDemo ? `demo-${idx}` : agentsRef.current[idx].id;
+
+        // Compute target position — spiral outward from center
+        const goldenAngle = 2.399963; // radians
+        const angle = idx * goldenAngle;
+        const radius = Math.min(w, h) * 0.04 * Math.sqrt(idx + 1);
+        const targetX = cx + Math.cos(angle) * radius;
+        const targetY = cy + Math.sin(angle) * radius;
+
+        nodes.push({
+          id,
+          name,
+          x: cx,
+          y: cy,
+          vx: (Math.cos(angle) * 8) + (Math.random() - 0.5) * 3,
+          vy: (Math.sin(angle) * 8) + (Math.random() - 0.5) * 3,
+          targetX,
+          targetY,
+          spawnTime: t,
+          alive: true,
+          scale: 0,
+          phase: Math.random() * Math.PI * 2,
+        });
+
+        // Spawn burst particles
+        for (let b = 0; b < 8; b++) {
+          const bAngle = (b / 8) * Math.PI * 2 + Math.random() * 0.5;
+          bursts.push({
+            x: cx,
+            y: cy,
+            vx: Math.cos(bAngle) * (2 + Math.random() * 3),
+            vy: Math.sin(bAngle) * (2 + Math.random() * 3),
+            life: 0,
+            maxLife: 30 + Math.random() * 20,
+          });
+        }
+
+        spawnIndexRef.current++;
+        lastSpawnRef.current = t;
       }
 
-      // Draw ambient particles
+      // === PHYSICS UPDATE ===
+      const springStiffness = 0.06;
+      const damping = 0.88;
+      const repulsion = 1200;
+
+      nodes.forEach(n => {
+        if (!n.alive) return;
+
+        // Pop-in scale
+        const age = t - n.spawnTime;
+        n.scale = Math.min(1, age * 5); // quick pop
+
+        // Spring toward target
+        const dx = n.targetX - n.x;
+        const dy = n.targetY - n.y;
+        n.vx += dx * springStiffness;
+        n.vy += dy * springStiffness;
+
+        // Repel from other nodes
+        nodes.forEach(other => {
+          if (other.id === n.id || !other.alive) return;
+          const rdx = n.x - other.x;
+          const rdy = n.y - other.y;
+          const dist = Math.sqrt(rdx * rdx + rdy * rdy) || 1;
+          if (dist < 120) {
+            const force = repulsion / (dist * dist);
+            n.vx += (rdx / dist) * force;
+            n.vy += (rdy / dist) * force;
+          }
+        });
+
+        // Damping
+        n.vx *= damping;
+        n.vy *= damping;
+
+        // Integrate
+        n.x += n.vx;
+        n.y += n.vy;
+
+        // Soft bounds
+        const pad = 60;
+        if (n.x < pad) { n.x = pad; n.vx *= -0.5; }
+        if (n.x > w - pad) { n.x = w - pad; n.vx *= -0.5; }
+        if (n.y < pad) { n.y = pad; n.vy *= -0.5; }
+        if (n.y > h - pad) { n.y = h - pad; n.vy *= -0.5; }
+
+        // Gentle drift once settled
+        const settled = age > 2;
+        if (settled) {
+          n.x += Math.sin(t * 0.3 + n.phase) * 0.15;
+          n.y += Math.cos(t * 0.25 + n.phase + 1) * 0.12;
+        }
+      });
+
+      // === DRAW AMBIENT PARTICLES ===
       particles.forEach(p => {
         p.x += p.vx;
         p.y += p.vy;
         p.life += 1;
         if (p.life > p.maxLife) {
-          p.x = Math.random() * w / dpr;
-          p.y = Math.random() * h / dpr;
+          p.x = Math.random() * w;
+          p.y = Math.random() * h;
           p.life = 0;
-          p.maxLife = 150 + Math.random() * 200;
         }
         const lifeRatio = p.life / p.maxLife;
         const alpha = lifeRatio < 0.2 ? lifeRatio / 0.2 : lifeRatio > 0.8 ? (1 - lifeRatio) / 0.2 : 1;
         ctx.beginPath();
         ctx.arc(p.x * dpr, p.y * dpr, p.size * dpr, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.06})`;
+        ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.05})`;
         ctx.fill();
       });
 
-      // Draw edges — white lines between EVERY pair of nodes (full mesh web)
-      for (let i = 0; i < nodes.length; i++) {
-        for (let j = i + 1; j < nodes.length; j++) {
-          const n1 = nodes[i];
-          const n2 = nodes[j];
+      // === DRAW BURST PARTICLES ===
+      for (let i = bursts.length - 1; i >= 0; i--) {
+        const b = bursts[i];
+        b.x += b.vx;
+        b.y += b.vy;
+        b.vx *= 0.94;
+        b.vy *= 0.94;
+        b.life++;
+        if (b.life > b.maxLife) {
+          bursts.splice(i, 1);
+          continue;
+        }
+        const alpha = 1 - b.life / b.maxLife;
+        ctx.beginPath();
+        ctx.arc(b.x * dpr, b.y * dpr, 1.5 * dpr, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(0, 255, 136, ${alpha * 0.6})`;
+        ctx.fill();
+      }
+
+      // === DRAW EDGES — full mesh between alive nodes ===
+      const aliveNodes = nodes.filter(n => n.alive && n.scale > 0.1);
+      for (let i = 0; i < aliveNodes.length; i++) {
+        for (let j = i + 1; j < aliveNodes.length; j++) {
+          const n1 = aliveNodes[i];
+          const n2 = aliveNodes[j];
+
+          const edx = n2.x - n1.x;
+          const edy = n2.y - n1.y;
+          const dist = Math.sqrt(edx * edx + edy * edy);
+
+          // Only draw lines within a distance threshold for readability
+          if (dist > 250) continue;
 
           const isSelected = selId && (selId === n1.id || selId === n2.id);
 
-          // Organic curve — slight wobble
-          const dx = n2.x - n1.x;
-          const dy = n2.y - n1.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          const nx = -dy / (dist || 1);
-          const ny = dx / (dist || 1);
-          const wobble = Math.sin(t * 0.5 + n1.phase + n2.phase) * 6;
-          const cpx = (n1.x + n2.x) / 2 + nx * wobble;
-          const cpy = (n1.y + n2.y) / 2 + ny * wobble;
+          // Slight curve
+          const enx = -edy / (dist || 1);
+          const eny = edx / (dist || 1);
+          const wobble = Math.sin(t * 0.4 + n1.phase + n2.phase) * 4;
+          const cpx = (n1.x + n2.x) / 2 + enx * wobble;
+          const cpy = (n1.y + n2.y) / 2 + eny * wobble;
 
-          // Glow layer
+          // Edge alpha fades with distance and scale
+          const edgeAlpha = Math.min(n1.scale, n2.scale) * Math.max(0.02, 0.15 - dist * 0.0005);
+
           if (isSelected) {
+            // Red glow
             ctx.beginPath();
             ctx.moveTo(n1.x * dpr, n1.y * dpr);
             ctx.quadraticCurveTo(cpx * dpr, cpy * dpr, n2.x * dpr, n2.y * dpr);
-            ctx.strokeStyle = 'rgba(255, 50, 50, 0.08)';
-            ctx.lineWidth = 5 * dpr;
+            ctx.strokeStyle = `rgba(255, 50, 50, ${edgeAlpha * 0.5})`;
+            ctx.lineWidth = 4 * dpr;
             ctx.stroke();
-          }
-
-          // Main line — white mesh, red when touching selected node
-          ctx.beginPath();
-          ctx.moveTo(n1.x * dpr, n1.y * dpr);
-          ctx.quadraticCurveTo(cpx * dpr, cpy * dpr, n2.x * dpr, n2.y * dpr);
-          if (isSelected) {
-            ctx.strokeStyle = 'rgba(255, 50, 50, 0.35)';
-            ctx.lineWidth = 1.2 * dpr;
-          } else {
-            // Fade by distance for depth
-            const alphaBase = Math.max(0.03, 0.14 - dist * 0.0003);
-            ctx.strokeStyle = `rgba(255, 255, 255, ${alphaBase})`;
-            ctx.lineWidth = 0.6 * dpr;
-          }
-          ctx.stroke();
-
-          // Traveling particle on selected edges
-          if (isSelected) {
-            const speed = 0.25 + (i * 0.02);
-            const progress = (t * speed + n1.phase + n2.phase) % 1;
-            const tp = progress;
-            const invT = 1 - tp;
-            const px = invT * invT * n1.x + 2 * invT * tp * cpx + tp * tp * n2.x;
-            const py = invT * invT * n1.y + 2 * invT * tp * cpy + tp * tp * n2.y;
 
             ctx.beginPath();
-            ctx.arc(px * dpr, py * dpr, 1.5 * dpr, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(255, 50, 50, 0.5)';
-            ctx.fill();
-
-            for (let tr = 1; tr <= 3; tr++) {
-              const tpT = ((t * speed + n1.phase + n2.phase) - tr * 0.03) % 1;
-              const tpTc = tpT < 0 ? tpT + 1 : tpT;
-              const invTT = 1 - tpTc;
-              const trx = invTT * invTT * n1.x + 2 * invTT * tpTc * cpx + tpTc * tpTc * n2.x;
-              const trY = invTT * invTT * n1.y + 2 * invTT * tpTc * cpy + tpTc * tpTc * n2.y;
-              ctx.beginPath();
-              ctx.arc(trx * dpr, trY * dpr, (1.2 - tr * 0.3) * dpr, 0, Math.PI * 2);
-              ctx.fillStyle = `rgba(255, 50, 50, ${0.3 - tr * 0.08})`;
-              ctx.fill();
-            }
+            ctx.moveTo(n1.x * dpr, n1.y * dpr);
+            ctx.quadraticCurveTo(cpx * dpr, cpy * dpr, n2.x * dpr, n2.y * dpr);
+            ctx.strokeStyle = `rgba(255, 50, 50, ${edgeAlpha * 2.5})`;
+            ctx.lineWidth = 1.2 * dpr;
+            ctx.stroke();
+          } else {
+            ctx.beginPath();
+            ctx.moveTo(n1.x * dpr, n1.y * dpr);
+            ctx.quadraticCurveTo(cpx * dpr, cpy * dpr, n2.x * dpr, n2.y * dpr);
+            ctx.strokeStyle = `rgba(255, 255, 255, ${edgeAlpha})`;
+            ctx.lineWidth = 0.6 * dpr;
+            ctx.stroke();
           }
         }
       }
 
-      // Draw nodes — all green/glowing, red when selected
-      nodes.forEach(node => {
-        const agent = agents.find(a => a.id === node.id);
-        if (!agent) return;
-
+      // === DRAW NODES ===
+      aliveNodes.forEach(node => {
         const isSelected = selId === node.id;
         const isHovered = hovId === node.id;
 
         const x = node.x * dpr;
         const y = node.y * dpr;
+        const s = node.scale;
 
         // Green by default, red when selected
         const cr = isSelected ? 255 : 0;
         const cg = isSelected ? 50 : 255;
         const cb = isSelected ? 50 : 136;
 
-        // Outer glow haze — always visible
-        const hazeR = (isSelected ? 55 : isHovered ? 40 : 35) * dpr;
-        const grad = ctx.createRadialGradient(x, y, 0, x, y, hazeR);
-        const hazeAlpha = isSelected ? 0.18 : 0.1;
-        grad.addColorStop(0, `rgba(${cr}, ${cg}, ${cb}, ${hazeAlpha})`);
-        grad.addColorStop(0.5, `rgba(${cr}, ${cg}, ${cb}, ${hazeAlpha * 0.3})`);
-        grad.addColorStop(1, `rgba(${cr}, ${cg}, ${cb}, 0)`);
-        ctx.beginPath();
-        ctx.arc(x, y, hazeR, 0, Math.PI * 2);
-        ctx.fillStyle = grad;
-        ctx.fill();
+        // Outer glow haze
+        const hazeR = (isSelected ? 50 : isHovered ? 38 : 30) * s * dpr;
+        if (hazeR > 0) {
+          const grad = ctx.createRadialGradient(x, y, 0, x, y, hazeR);
+          const hazeAlpha = (isSelected ? 0.18 : 0.1) * s;
+          grad.addColorStop(0, `rgba(${cr}, ${cg}, ${cb}, ${hazeAlpha})`);
+          grad.addColorStop(0.5, `rgba(${cr}, ${cg}, ${cb}, ${hazeAlpha * 0.3})`);
+          grad.addColorStop(1, `rgba(${cr}, ${cg}, ${cb}, 0)`);
+          ctx.beginPath();
+          ctx.arc(x, y, hazeR, 0, Math.PI * 2);
+          ctx.fillStyle = grad;
+          ctx.fill();
+        }
 
         // Breathing ring for selected
         if (isSelected) {
-          const ringR = (24 + Math.sin(t * 1.5) * 3) * dpr;
+          const ringR = (24 + Math.sin(t * 1.5) * 3) * s * dpr;
           ctx.beginPath();
           ctx.arc(x, y, ringR, 0, Math.PI * 2);
-          ctx.strokeStyle = `rgba(${cr}, ${cg}, ${cb}, ${0.15 + Math.sin(t * 1.5) * 0.06})`;
+          ctx.strokeStyle = `rgba(${cr}, ${cg}, ${cb}, ${(0.15 + Math.sin(t * 1.5) * 0.06) * s})`;
           ctx.lineWidth = 0.8 * dpr;
           ctx.stroke();
         }
 
-        // Core dot — green glow, red when selected
-        const coreR = (isSelected ? 5.5 : isHovered ? 5 : 4) * dpr;
-
+        // Core dot
+        const coreR = (isSelected ? 5.5 : isHovered ? 5 : 3.5) * s * dpr;
         ctx.beginPath();
         ctx.arc(x, y, coreR, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${cr}, ${cg}, ${cb}, 0.85)`;
+        ctx.fillStyle = `rgba(${cr}, ${cg}, ${cb}, ${0.85 * s})`;
         ctx.fill();
 
         // Inner bright point
         ctx.beginPath();
-        ctx.arc(x, y, 1.5 * dpr, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 255, 255, ${isSelected ? 0.8 : 0.5})`;
+        ctx.arc(x, y, 1.5 * s * dpr, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 255, ${(isSelected ? 0.8 : 0.5) * s})`;
         ctx.fill();
 
         // Label
-        const labelAlpha = isSelected ? 0.9 : isHovered ? 0.7 : 0.35;
-        ctx.font = `${isSelected ? 500 : 400} ${(isSelected ? 10.5 : 9.5) * dpr}px Brockmann, sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.fillStyle = `rgba(232, 232, 237, ${labelAlpha})`;
-        ctx.fillText(
-          agent.name.length > 14 ? agent.name.slice(0, 13) + '..' : agent.name,
-          x,
-          y + (isSelected ? 18 : 16) * dpr,
-        );
-
-        // Brand sublabel
-        if (agent.brand) {
-          ctx.font = `400 ${7.5 * dpr}px Brockmann, sans-serif`;
-          ctx.fillStyle = `rgba(232, 232, 237, ${labelAlpha * 0.5})`;
-          ctx.fillText(agent.brand, x, y + (isSelected ? 28 : 26) * dpr);
+        if (s > 0.5) {
+          const labelAlpha = (isSelected ? 0.9 : isHovered ? 0.7 : 0.3) * s;
+          ctx.font = `500 ${(isSelected ? 10 : 8.5) * dpr}px Brockmann, sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.fillStyle = `rgba(232, 232, 237, ${labelAlpha})`;
+          ctx.fillText(node.name, x, y + 15 * s * dpr);
         }
       });
 
@@ -366,9 +399,9 @@ export default function ConnectionMap({ agents, selectedId, onSelect }: Props) {
       running = false;
       cancelAnimationFrame(frameRef.current);
     };
-  }, [agents, dimensions]);
+  }, [dimensions, useDemo]);
 
-  // Hit detection for clicks and hovers
+  // Hit detection
   const getNodeAt = useCallback((clientX: number, clientY: number): string | null => {
     const canvas = canvasRef.current;
     if (!canvas) return null;
@@ -377,6 +410,7 @@ export default function ConnectionMap({ agents, selectedId, onSelect }: Props) {
     const y = clientY - rect.top;
 
     for (const node of nodesRef.current) {
+      if (!node.alive || node.scale < 0.3) continue;
       const dx = node.x - x;
       const dy = node.y - y;
       if (dx * dx + dy * dy < 25 * 25) return node.id;
