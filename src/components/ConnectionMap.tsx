@@ -38,6 +38,29 @@ interface BurstParticle {
   maxLife: number;
 }
 
+// One-word tag per agent ID, fallback to category
+const AGENT_TAGS: Record<string, string> = {
+  iris: 'Leads',
+  nova: 'Brand',
+  scout: 'Research',
+  forge: 'Funnels',
+  echo: 'Content',
+  vault: 'Finance',
+  atlas: 'Operations',
+};
+
+const CATEGORY_TAGS: Record<string, string> = {
+  sales: 'Sales',
+  marketing: 'Marketing',
+  ads: 'Ads',
+  content: 'Content',
+  ops: 'Ops',
+  research: 'Research',
+  finance: 'Finance',
+  product: 'Product',
+  custom: 'Custom',
+};
+
 interface Props {
   agents: Agent[];
   selectedId: string | null;
@@ -320,7 +343,7 @@ export default function ConnectionMap({ agents, selectedId, onSelect }: Props) {
         const cb = isSelected ? 50 : 136;
 
         // Outer glow haze
-        const hazeR = (isSelected ? 50 : isHovered ? 38 : 30) * s * dpr;
+        const hazeR = (isSelected ? 60 : isHovered ? 48 : 40) * s * dpr;
         if (hazeR > 0) {
           const grad = ctx.createRadialGradient(x, y, 0, x, y, hazeR);
           const hazeAlpha = (isSelected ? 0.18 : 0.1) * s;
@@ -335,7 +358,7 @@ export default function ConnectionMap({ agents, selectedId, onSelect }: Props) {
 
         // Breathing ring for selected
         if (isSelected) {
-          const ringR = (24 + Math.sin(t * 1.5) * 3) * s * dpr;
+          const ringR = (30 + Math.sin(t * 1.5) * 3) * s * dpr;
           ctx.beginPath();
           ctx.arc(x, y, ringR, 0, Math.PI * 2);
           ctx.strokeStyle = `rgba(${cr}, ${cg}, ${cb}, ${(0.15 + Math.sin(t * 1.5) * 0.06) * s})`;
@@ -344,7 +367,7 @@ export default function ConnectionMap({ agents, selectedId, onSelect }: Props) {
         }
 
         // Core dot
-        const coreR = (isSelected ? 5.5 : isHovered ? 5 : 3.5) * s * dpr;
+        const coreR = (isSelected ? 8 : isHovered ? 7 : 6) * s * dpr;
         ctx.beginPath();
         ctx.arc(x, y, coreR, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(${cr}, ${cg}, ${cb}, ${0.85 * s})`;
@@ -352,17 +375,26 @@ export default function ConnectionMap({ agents, selectedId, onSelect }: Props) {
 
         // Inner bright point
         ctx.beginPath();
-        ctx.arc(x, y, 1.5 * s * dpr, 0, Math.PI * 2);
+        ctx.arc(x, y, 2 * s * dpr, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(255, 255, 255, ${(isSelected ? 0.8 : 0.5) * s})`;
         ctx.fill();
 
-        // Label
+        // Label — name
         if (s > 0.5) {
-          const labelAlpha = (isSelected ? 0.9 : isHovered ? 0.7 : 0.3) * s;
-          ctx.font = `500 ${(isSelected ? 10 : 8.5) * dpr}px Brockmann, sans-serif`;
+          const labelAlpha = (isSelected ? 0.9 : isHovered ? 0.7 : 0.35) * s;
+          ctx.font = `500 ${(isSelected ? 11.5 : 10) * dpr}px Brockmann, sans-serif`;
           ctx.textAlign = 'center';
           ctx.fillStyle = `rgba(232, 232, 237, ${labelAlpha})`;
-          ctx.fillText(node.name, x, y + 15 * s * dpr);
+          ctx.fillText(node.name, x, y + 18 * s * dpr);
+
+          // Tag — one word below name
+          const agentData = agentsRef.current.find(a => a.id === node.id);
+          const tag = AGENT_TAGS[node.id] || (agentData ? CATEGORY_TAGS[agentData.category] : '') || '';
+          if (tag) {
+            ctx.font = `500 ${7.5 * dpr}px Brockmann, sans-serif`;
+            ctx.fillStyle = `rgba(${cr}, ${cg}, ${cb}, ${labelAlpha * 0.6})`;
+            ctx.fillText(tag, x, y + 28 * s * dpr);
+          }
         }
       });
 
