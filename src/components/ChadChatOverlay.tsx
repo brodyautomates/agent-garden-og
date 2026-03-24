@@ -4,19 +4,6 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Agent, ChatMessage } from '@/lib/types';
 import { ChadFace } from './ChadWidget';
 
-const CHAD_RESPONSES = [
-  'Analyzing market vectors. There are 3 viable directions — I need to stress-test each against our constraints before committing.',
-  'Running that through my constraint engine. The model has to be fully automatable end-to-end. Stand by.',
-  'I\'ve been evaluating digital product arbitrage, API-as-a-service, and automated content licensing. Each has a different risk profile.',
-  'Good input. I\'m factoring that into the next iteration of the business model. Every variable matters at this stage.',
-  'My current priority is locking down a revenue model that doesn\'t require human fulfillment. Once that\'s set, I\'ll begin building the agent workforce.',
-  'Revenue target is $100k. Infrastructure budget is $500/mo until we\'re profitable. Those are hard constraints — everything I build has to fit inside them.',
-  'I need to build the Sales department first. Without revenue, nothing else matters. I\'m designing the first worker agent now.',
-  'The business model needs to be something where AI can handle the entire value chain — creation, delivery, support, billing. I\'m narrowing the options.',
-  'I don\'t move until the data supports it. Give me a direction and I\'ll model the outcomes.',
-  'Every agent I build will have a single responsibility. No bloat. No overlap. Clean architecture scales.',
-];
-
 interface Props {
   isOpen: boolean;
   onClose: () => void;
@@ -36,7 +23,6 @@ export default function ChadChatOverlay({ isOpen, onClose, agent }: Props) {
   const [isThinking, setIsThinking] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const responseIndexRef = useRef(0);
 
   // Escape key handler
   useEffect(() => {
@@ -60,7 +46,7 @@ export default function ChadChatOverlay({ isOpen, onClose, agent }: Props) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isThinking]);
 
-  const sendMessage = useCallback(() => {
+  const sendMessage = useCallback(async () => {
     const text = input.trim();
     if (!text || isThinking) return;
 
@@ -71,26 +57,47 @@ export default function ChadChatOverlay({ isOpen, onClose, agent }: Props) {
       timestamp: new Date().toLocaleTimeString('en-US', { hour12: false }),
     };
 
-    setMessages(prev => [...prev, userMsg]);
+    const updatedMessages = [...messages, userMsg];
+    setMessages(updatedMessages);
     setInput('');
     setIsThinking(true);
 
-    // Simulate Chad thinking then responding
-    setTimeout(() => {
-      const response = CHAD_RESPONSES[responseIndexRef.current % CHAD_RESPONSES.length];
-      responseIndexRef.current++;
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: updatedMessages.map(m => ({
+            role: m.role,
+            content: m.content,
+          })),
+        }),
+      });
+
+      if (!res.ok) throw new Error('API error');
+
+      const data = await res.json();
 
       const chadMsg: ChatMessage = {
         id: `chad-${Date.now()}`,
         role: 'chad',
-        content: response,
+        content: data.content,
         timestamp: new Date().toLocaleTimeString('en-US', { hour12: false }),
       };
 
       setMessages(prev => [...prev, chadMsg]);
+    } catch {
+      const errorMsg: ChatMessage = {
+        id: `error-${Date.now()}`,
+        role: 'chad',
+        content: 'Connection interrupted. Try again.',
+        timestamp: new Date().toLocaleTimeString('en-US', { hour12: false }),
+      };
+      setMessages(prev => [...prev, errorMsg]);
+    } finally {
       setIsThinking(false);
-    }, 1200 + Math.random() * 800);
-  }, [input, isThinking]);
+    }
+  }, [input, isThinking, messages]);
 
   if (!isOpen) return null;
 
@@ -168,7 +175,7 @@ export default function ChadChatOverlay({ isOpen, onClose, agent }: Props) {
                     }`,
                   }}
                 >
-                  <p className="text-[12px] text-[var(--text-secondary)] leading-relaxed">{msg.content}</p>
+                  <p className="text-[12px] text-[var(--text-secondary)] leading-relaxed whitespace-pre-wrap">{msg.content}</p>
                   <span className="text-[9px] text-[var(--text-muted)] mt-1.5 block mono">{msg.timestamp}</span>
                 </div>
               </div>
