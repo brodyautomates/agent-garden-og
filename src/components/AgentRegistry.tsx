@@ -99,6 +99,14 @@ function AgentIcon({ agentId, color }: { agentId: string; color: string }) {
           <path d="M2 20h20M4 20l2-14 4 6 2-8 2 8 4-6 2 14" />
         </svg>
       );
+    // Iris — eye (lead gen, finding prospects)
+    case 'iris':
+      return (
+        <svg {...props}>
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z" />
+          <circle cx="12" cy="12" r="3" />
+        </svg>
+      );
     default:
       return (
         <svg {...props}>

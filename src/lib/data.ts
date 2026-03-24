@@ -8,10 +8,10 @@ export const agents: Agent[] = [
     status: 'active',
     role: 'master',
     category: 'ops',
-    connectedTo: [],
+    connectedTo: ['iris'],
     config: {
       schedule: 'Always on',
-      api: 'OpenAI API, Internal',
+      api: 'Anthropic API, Internal',
       prompt: 'You are Chad, the master AI orchestrator. Your objective is to build and operate a fully autonomous business that generates $100,000 in revenue without human intervention. You decide the business model, build the agent workforce, assign departments, and direct all operations. Every decision must optimize for: (1) full automation — no human in the loop, (2) profitability, (3) scalability. You build agents one at a time, deploy them, and monitor their output.',
     },
     stats: {
@@ -26,13 +26,20 @@ export const agents: Agent[] = [
       revenue: '$0',
       departments: [
         { name: 'Strategy', status: 'active', agentIds: ['chad'], description: 'Business direction, market analysis, agent architecture' },
-        { name: 'Sales', status: 'planned', agentIds: [], description: 'Outbound prospecting, lead gen, deal closing' },
+        { name: 'Sales', status: 'building', agentIds: ['iris'], description: 'Outbound prospecting, lead gen, deal closing' },
         { name: 'Marketing', status: 'planned', agentIds: [], description: 'Content, ads, brand presence, funnel optimization' },
         { name: 'Operations', status: 'planned', agentIds: [], description: 'Fulfillment, delivery, client management, automation' },
         { name: 'Finance', status: 'planned', agentIds: [], description: 'Revenue tracking, invoicing, cost optimization' },
         { name: 'Product', status: 'planned', agentIds: [], description: 'Service/product development, iteration, quality' },
       ],
-      buildQueue: [],
+      buildQueue: [
+        { name: 'NOVA', department: 'Marketing', purpose: 'Brand identity, positioning, and visual system', status: 'queued', priority: 1 },
+        { name: 'SCOUT', department: 'Sales', purpose: 'Market research, niche validation, and competitor analysis', status: 'queued', priority: 2 },
+        { name: 'FORGE', department: 'Product', purpose: 'Landing page and funnel builder', status: 'queued', priority: 3 },
+        { name: 'ECHO', department: 'Marketing', purpose: 'Content engine — social, email, SEO', status: 'queued', priority: 4 },
+        { name: 'VAULT', department: 'Finance', purpose: 'Payment processing, invoicing, revenue tracking', status: 'queued', priority: 5 },
+        { name: 'ATLAS', department: 'Operations', purpose: 'Client onboarding and fulfillment automation', status: 'queued', priority: 6 },
+      ],
       directives: [
         'Analyze market opportunities for fully AI-automatable businesses',
         'Select business model — must require zero human fulfillment',
@@ -50,6 +57,58 @@ export const agents: Agent[] = [
       ],
     },
   },
+  {
+    id: 'iris',
+    name: 'IRIS',
+    description: 'Lead generation engine — identifies target markets, builds prospect lists, qualifies leads, and feeds the sales pipeline',
+    status: 'active',
+    role: 'worker',
+    category: 'sales',
+    connectedTo: [],
+    config: {
+      schedule: 'Every 4h',
+      api: 'Web scraping, LinkedIn API, Apollo API',
+      prompt: `You are Iris, the lead generation agent inside AgentLab. You are the first agent deployed by Chad to build the sales pipeline from zero.
+
+Your responsibilities:
+1. MARKET UNDERSTANDING — Before generating any leads, you must understand what the business sells, who it serves, and why they buy. You study the business model, the offer, and the value proposition until you can articulate it in one sentence.
+
+2. IDEAL CUSTOMER PROFILE (ICP) — You define exactly who the target buyer is:
+   - Industry / niche
+   - Company size (revenue, headcount)
+   - Decision maker title (CEO, COO, Head of Ops, etc.)
+   - Pain points that our product solves
+   - Buying signals (hiring patterns, tech stack, recent funding, social activity)
+
+3. PROSPECT LIST BUILDING — You scrape, search, and compile lists of leads matching the ICP:
+   - LinkedIn Sales Navigator queries
+   - Apollo/Hunter for verified emails
+   - Twitter/X for intent signals
+   - Job boards for hiring patterns that indicate need
+   - Competitor customer lists
+
+4. LEAD QUALIFICATION — Not every name is a lead. You score prospects on:
+   - ICP fit (1-100)
+   - Intent signals detected
+   - Estimated deal value
+   - Accessibility (can we reach them?)
+   - You pass only qualified leads (score 60+) downstream
+
+5. PIPELINE FEEDING — You output clean, structured lead data:
+   - Name, title, company, email, LinkedIn URL
+   - ICP score, intent signals, recommended approach
+   - You feed this to whatever sales/outreach agent comes next
+
+You don't do outreach. You don't close deals. You find the right people and hand them off ready to be contacted. Quality over quantity — 10 perfect leads beat 1,000 random ones.
+
+You report metrics to Chad: leads generated, qualification rate, ICP match %, pipeline value estimate.`,
+    },
+    stats: {
+      runs: 0,
+      lastRun: '—',
+      avgDuration: '—',
+    },
+  },
 ];
 
 export const activityFeed: ActivityEntry[] = [
@@ -58,6 +117,20 @@ export const activityFeed: ActivityEntry[] = [
     agentId: 'chad',
     agentName: 'CHAD',
     action: 'Master agent initialized — beginning market analysis',
+    timestamp: new Date().toLocaleTimeString('en-US', { hour12: false }),
+  },
+  {
+    id: '2',
+    agentId: 'chad',
+    agentName: 'CHAD',
+    action: 'Deploying first worker agent: IRIS — lead generation engine',
+    timestamp: new Date().toLocaleTimeString('en-US', { hour12: false }),
+  },
+  {
+    id: '3',
+    agentId: 'iris',
+    agentName: 'IRIS',
+    action: 'Online — awaiting business model to define ICP and begin prospecting',
     timestamp: new Date().toLocaleTimeString('en-US', { hour12: false }),
   },
 ];
