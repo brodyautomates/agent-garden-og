@@ -9,59 +9,71 @@ interface Props {
   onOpenChat: () => void;
 }
 
-function ChadFace({ size = 44 }: { size?: number }) {
-  const fs = size * 0.2;
+// Pixel grid face — 13x15 grid, each cell is a tiny square
+// 0=empty, 1=skin, 2=eye, 3=monocle, 4=moustache, 5=mouth, 6=monocle chain, 7=eyebrow
+const CHAD_GRID = [
+  //0 1 2 3 4 5 6 7 8 9 0 1 2
+  [0,0,0,1,1,1,1,1,1,1,0,0,0], // 0  forehead top
+  [0,0,1,1,1,1,1,1,1,1,1,0,0], // 1
+  [0,1,1,1,1,1,1,1,1,1,1,1,0], // 2
+  [0,1,1,7,7,1,1,1,7,7,1,1,0], // 3  eyebrows
+  [0,1,1,1,1,1,1,1,1,1,1,1,0], // 4
+  [0,1,1,2,2,1,1,1,3,3,1,1,0], // 5  eyes (left normal, right monocle)
+  [0,1,1,2,2,1,1,1,3,3,6,1,0], // 6  eyes bottom + chain start
+  [0,1,1,1,1,1,1,1,1,1,6,1,0], // 7  nose area + chain
+  [0,1,1,1,1,1,1,1,1,1,1,1,0], // 8
+  [0,1,4,4,1,4,4,4,1,4,4,1,0], // 9  moustache
+  [0,1,4,1,1,1,4,1,1,1,4,1,0], // 10 moustache curls
+  [0,1,1,1,5,5,5,5,5,1,1,1,0], // 11 mouth
+  [0,1,1,1,1,1,1,1,1,1,1,1,0], // 12 chin
+  [0,0,1,1,1,1,1,1,1,1,1,0,0], // 13
+  [0,0,0,1,1,1,1,1,1,1,0,0,0], // 14 chin bottom
+];
+
+const GRID_COLORS: Record<number, string> = {
+  0: 'transparent',
+  1: 'rgba(255, 51, 51, 0.12)',   // skin — subtle red
+  2: 'rgba(255, 51, 51, 0.85)',   // eye — bright red
+  3: 'rgba(255, 180, 50, 0.8)',   // monocle — gold
+  4: 'rgba(255, 51, 51, 0.55)',   // moustache — medium red
+  5: 'rgba(255, 51, 51, 0.35)',   // mouth — dim red
+  6: 'rgba(255, 180, 50, 0.35)',  // monocle chain — dim gold
+  7: 'rgba(255, 51, 51, 0.45)',   // eyebrow — medium red
+};
+
+function ChadFace({ size = 48 }: { size?: number }) {
+  const cols = CHAD_GRID[0].length;
+  const rows = CHAD_GRID.length;
+  const cellSize = size / cols;
+
   return (
     <div
-      className="mono flex items-center justify-center shrink-0 select-none"
+      className="shrink-0 select-none overflow-hidden"
       style={{
         width: size,
-        height: size * 1.15,
+        height: cellSize * rows,
         background: 'rgba(0, 0, 0, 0.5)',
         borderRadius: 8,
         border: '1px solid rgba(255, 51, 51, 0.2)',
+        display: 'grid',
+        gridTemplateColumns: `repeat(${cols}, ${cellSize}px)`,
+        gridTemplateRows: `repeat(${rows}, ${cellSize}px)`,
+        gap: 0.5,
+        padding: 1,
       }}
     >
-      <div className="flex flex-col items-center leading-none" style={{ fontSize: fs }}>
-        {/* Eyes — right eye has monocle */}
-        <div className="flex items-center gap-[2px]" style={{ color: 'var(--chad-red)', animation: 'chad-blink 4s infinite' }}>
-          <span>{'>'}</span>
-          <span style={{ fontSize: fs * 0.7 }}>{'_'}</span>
-          <span style={{ position: 'relative' }}>
-            {'O'}
-            {/* Monocle ring */}
-            <span style={{
-              position: 'absolute',
-              top: -2,
-              right: -3,
-              width: fs * 1.3,
-              height: fs * 1.3,
-              borderRadius: '50%',
-              border: '1px solid var(--chad-red)',
-              opacity: 0.6,
-            }} />
-            {/* Monocle chain */}
-            <span style={{
-              position: 'absolute',
-              top: fs * 0.9,
-              right: -1,
-              width: 1,
-              height: fs * 0.8,
-              background: 'var(--chad-red)',
-              opacity: 0.3,
-              transform: 'rotate(15deg)',
-            }} />
-          </span>
-        </div>
-        {/* Moustache */}
-        <span style={{ color: 'var(--chad-red)', fontSize: fs * 0.9, marginTop: 1, opacity: 0.7 }}>
-          {'~}{~'}
-        </span>
-        {/* Mouth */}
-        <span style={{ color: 'rgba(255, 51, 51, 0.35)', fontSize: fs * 0.8, marginTop: 0 }}>
-          {'___'}
-        </span>
-      </div>
+      {CHAD_GRID.flatMap((row, y) =>
+        row.map((cell, x) => (
+          <div
+            key={`${x}-${y}`}
+            style={{
+              backgroundColor: GRID_COLORS[cell],
+              borderRadius: cell === 3 || cell === 6 ? '50%' : 1,
+              animation: cell === 2 ? 'chad-blink 4s infinite' : undefined,
+            }}
+          />
+        ))
+      )}
     </div>
   );
 }
