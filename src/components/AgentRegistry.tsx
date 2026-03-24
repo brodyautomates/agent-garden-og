@@ -123,6 +123,18 @@ export default function AgentRegistry({ agents, selectedId, onSelect }: Props) {
 
       {/* Agent list grouped by category */}
       <div className="flex-1 overflow-y-auto py-1">
+        {agents.length === 0 && (
+          <div className="flex flex-col items-center justify-center h-full px-4 text-center">
+            <div className="w-10 h-10 rounded-xl bg-[var(--bg-card)] border border-[var(--border)] flex items-center justify-center mb-3">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.5" strokeLinecap="round">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 8v4M12 16h.01" />
+              </svg>
+            </div>
+            <p className="text-[12px] text-[var(--text-muted)]">No agents deployed</p>
+            <p className="text-[10px] text-[var(--text-muted)] mt-1 opacity-50">The garden is empty</p>
+          </div>
+        )}
         {categories.map((cat) => (
           <div key={cat}>
             <div className="px-4 pt-3 pb-1.5">

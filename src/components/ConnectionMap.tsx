@@ -54,7 +54,27 @@ export default function ConnectionMap({ agents, selectedId, onSelect }: Props) {
 
   // Initialize node positions with force-directed seed
   const initNodes = useCallback((w: number, h: number) => {
-    if (agents.length === 0 || w === 0) return;
+    if (w === 0) return;
+
+    // Always seed ambient particles
+    const particles: Particle[] = [];
+    for (let i = 0; i < 40; i++) {
+      particles.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        vx: (Math.random() - 0.5) * 0.15,
+        vy: (Math.random() - 0.5) * 0.15,
+        life: Math.random() * 200,
+        maxLife: 150 + Math.random() * 200,
+        size: 0.5 + Math.random() * 1.2,
+      });
+    }
+    particlesRef.current = particles;
+
+    if (agents.length === 0) {
+      nodesRef.current = [];
+      return;
+    }
 
     const cx = w / 2;
     const cy = h / 2;
@@ -122,21 +142,6 @@ export default function ConnectionMap({ agents, selectedId, onSelect }: Props) {
 
     nodes.forEach(n => { n.baseX = n.x; n.baseY = n.y; });
     nodesRef.current = nodes;
-
-    // Seed ambient particles
-    const particles: Particle[] = [];
-    for (let i = 0; i < 40; i++) {
-      particles.push({
-        x: Math.random() * w,
-        y: Math.random() * h,
-        vx: (Math.random() - 0.5) * 0.15,
-        vy: (Math.random() - 0.5) * 0.15,
-        life: Math.random() * 200,
-        maxLife: 150 + Math.random() * 200,
-        size: 0.5 + Math.random() * 1.2,
-      });
-    }
-    particlesRef.current = particles;
   }, [agents]);
 
   useEffect(() => {

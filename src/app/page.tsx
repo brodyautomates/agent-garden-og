@@ -26,8 +26,8 @@ export default function Lab() {
               </svg>
             </div>
             <div>
-              <h1 className="text-[15px] font-semibold text-[var(--text-primary)] tracking-tight">THE LAB</h1>
-              <p className="text-[11px] text-[var(--text-muted)] -mt-0.5">Agent Workbench</p>
+              <h1 className="text-[15px] font-semibold text-[var(--text-primary)] tracking-tight">AGENT GARDEN</h1>
+              <p className="text-[11px] text-[var(--text-muted)] -mt-0.5">Autonomous AI Hub</p>
             </div>
           </div>
         </div>

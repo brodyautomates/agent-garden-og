@@ -27,6 +27,17 @@ export default function ActivityFeed({ activity, onClickAgent }: Props) {
 
       {/* Feed */}
       <div className="flex-1 overflow-y-auto">
+        {activity.length === 0 && (
+          <div className="flex flex-col items-center justify-center h-full px-4 text-center">
+            <div className="w-10 h-10 rounded-xl bg-[var(--bg-card)] border border-[var(--border)] flex items-center justify-center mb-3">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.5" strokeLinecap="round">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+            </div>
+            <p className="text-[12px] text-[var(--text-muted)]">No activity yet</p>
+            <p className="text-[10px] text-[var(--text-muted)] mt-1 opacity-50">Waiting for agents</p>
+          </div>
+        )}
         {activity.map((entry, i) => (
           <div
             key={entry.id}
