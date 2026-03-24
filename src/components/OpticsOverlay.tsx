@@ -38,6 +38,7 @@ interface Props {
 
 export default function OpticsOverlay({ isOpen, onClose, missions, agents }: Props) {
   const [selectedMission, setSelectedMission] = useState(0);
+  const [agentFilter, setAgentFilter] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -151,24 +152,51 @@ export default function OpticsOverlay({ isOpen, onClose, missions, agents }: Pro
             </div>
           </div>
 
-          {/* Mission tabs */}
+          {/* Agent filter + Mission tabs */}
           {missions.length > 0 && (
-            <div className="shrink-0 px-6 py-2 border-b border-[var(--border)] flex items-center gap-1 overflow-x-auto">
-              {missions.map((m, i) => (
-                <button
-                  key={m.id}
-                  onClick={() => setSelectedMission(i)}
-                  className="px-3 py-1.5 rounded-lg text-[10px] uppercase tracking-wider transition-all shrink-0"
-                  style={{
-                    background: selectedMission === i ? 'var(--accent-dim)' : 'transparent',
-                    color: selectedMission === i ? 'var(--accent)' : 'var(--text-muted)',
-                    border: selectedMission === i ? '1px solid var(--border-active)' : '1px solid transparent',
-                  }}
-                >
-                  Mission {String(i + 1).padStart(3, '0')}
-                  <span className="ml-1.5 text-[8px] opacity-60">{m.startedAt}</span>
-                </button>
-              ))}
+            <div className="shrink-0 px-6 py-2 border-b border-[var(--border)]">
+              {/* Agent filter pills */}
+              <div className="flex items-center gap-1 mb-2">
+                <span className="text-[8px] text-[var(--text-muted)] uppercase tracking-widest mr-1">Filter:</span>
+                {[null, ...Array.from(new Set(missions.flatMap(m => m.reports.map(r => r.agentId))))].map((id) => {
+                  const label = id === null ? 'ALL' : agents.find(a => a.id === id)?.name || id;
+                  const isActive = agentFilter === id;
+                  return (
+                    <button
+                      key={id ?? 'all'}
+                      onClick={() => { setAgentFilter(id); setSelectedMission(0); }}
+                      className="px-2 py-0.5 rounded text-[9px] uppercase tracking-wider transition-all"
+                      style={{
+                        background: isActive ? 'var(--accent-dim)' : 'transparent',
+                        color: isActive ? 'var(--accent)' : 'var(--text-muted)',
+                      }}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+              {/* Mission tabs (filtered) */}
+              <div className="flex items-center gap-1 overflow-x-auto">
+                {(agentFilter ? missions.filter(m => m.reports.some(r => r.agentId === agentFilter)) : missions).map((m, i) => {
+                  const globalIdx = missions.indexOf(m);
+                  return (
+                    <button
+                      key={m.id}
+                      onClick={() => setSelectedMission(globalIdx)}
+                      className="px-3 py-1.5 rounded-lg text-[10px] uppercase tracking-wider transition-all shrink-0"
+                      style={{
+                        background: selectedMission === globalIdx ? 'var(--accent-dim)' : 'transparent',
+                        color: selectedMission === globalIdx ? 'var(--accent)' : 'var(--text-muted)',
+                        border: selectedMission === globalIdx ? '1px solid var(--border-active)' : '1px solid transparent',
+                      }}
+                    >
+                      Mission {String(globalIdx + 1).padStart(3, '0')}
+                      <span className="ml-1.5 text-[8px] opacity-60">{m.startedAt}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
 
@@ -224,23 +252,79 @@ export default function OpticsOverlay({ isOpen, onClose, missions, agents }: Pro
                     </div>
                   ))}
 
-                  {/* Lead cards */}
-                  {missionLeads.length > 0 ? (
-                    <div>
-                      <div className="text-[9px] text-[var(--text-muted)] uppercase tracking-widest mb-3">
-                        Leads ({missionLeads.length})
-                      </div>
-                      <div className="space-y-2">
-                        {missionLeads.map((lead, i) => (
-                          <LeadCard key={i} lead={lead} />
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-[11px] text-[var(--text-muted)] text-center py-8">
-                      No detailed lead data for this mission
-                    </div>
-                  )}
+                  {/* Agent-specific output rendering */}
+                  {mission.reports.map(report => {
+                    const out = report.output as Record<string, unknown> | null;
+                    if (!out) return null;
+
+                    // Iris — lead cards
+                    if (report.agentId === 'iris' && out.leads) {
+                      const leads = (out.leads || []) as Lead[];
+                      return (
+                        <div key={`out-${report.id}`}>
+                          <div className="text-[9px] text-[var(--text-muted)] uppercase tracking-widest mb-3">Leads ({leads.length})</div>
+                          <div className="space-y-2">{leads.map((lead, i) => <LeadCard key={i} lead={lead} />)}</div>
+                        </div>
+                      );
+                    }
+
+                    // Architect — package preview
+                    if (report.agentId === 'architect' && out.type === 'client-package') {
+                      const lpc = out.landingPageCopy as Record<string, unknown> | undefined;
+                      const icp = out.icp as Record<string, unknown> | undefined;
+                      const emails = (out.emailSequences || []) as { subject: string; sendDay: number }[];
+                      return (
+                        <div key={`out-${report.id}`} className="space-y-2">
+                          <div className="text-[9px] text-[var(--text-muted)] uppercase tracking-widest mb-2">Client Package</div>
+                          {icp && (
+                            <div className="px-3 py-2.5 rounded-lg" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                              <div className="text-[10px] text-[var(--accent)] mb-1">ICP</div>
+                              <div className="text-[10px] text-[var(--text-secondary)] leading-relaxed">{icp.description as string}</div>
+                              <div className="flex flex-wrap gap-1 mt-2">
+                                {((icp.titles || []) as string[]).map((t, i) => (
+                                  <span key={i} className="text-[8px] px-1.5 py-px rounded bg-[var(--accent-dim)] text-[var(--accent)]">{t}</span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {emails.length > 0 && (
+                            <div className="px-3 py-2.5 rounded-lg" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                              <div className="text-[10px] text-[var(--accent)] mb-1">Email Sequence ({emails.length} emails)</div>
+                              {emails.map((e, i) => (
+                                <div key={i} className="text-[9px] text-[var(--text-muted)] py-0.5">Day {e.sendDay}: {e.subject}</div>
+                              ))}
+                            </div>
+                          )}
+                          {lpc && (
+                            <div className="px-3 py-2.5 rounded-lg" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                              <div className="text-[10px] text-[var(--accent)] mb-1">Landing Page</div>
+                              <div className="text-[13px] text-[var(--text-primary)]">{lpc.headline as string}</div>
+                              <div className="text-[10px] text-[var(--text-secondary)] mt-0.5">{lpc.subheadline as string}</div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }
+
+                    // Forge — page preview
+                    if (report.agentId === 'forge' && out.type === 'landing-page' && out.html) {
+                      return (
+                        <div key={`out-${report.id}`}>
+                          <div className="text-[9px] text-[var(--text-muted)] uppercase tracking-widest mb-2">Landing Page</div>
+                          <div className="rounded-lg overflow-hidden border border-[var(--border)]">
+                            <iframe srcDoc={out.html as string} sandbox="allow-scripts" className="w-full h-[250px] border-0" title="Page preview" />
+                          </div>
+                          {typeof out.deployUrl === 'string' && out.deployUrl && (
+                            <a href={out.deployUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] text-[var(--accent)] hover:underline mono mt-2 block">
+                              {out.deployUrl}
+                            </a>
+                          )}
+                        </div>
+                      );
+                    }
+
+                    return null;
+                  })}
                 </div>
               )}
             </div>

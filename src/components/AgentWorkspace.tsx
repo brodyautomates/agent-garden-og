@@ -1,8 +1,10 @@
 'use client';
 
-import { Agent, ActivityEntry, RunStatus } from '@/lib/types';
+import { Agent, ActivityEntry, RunStatus, OpticsMission } from '@/lib/types';
 import MasterWorkspace from './MasterWorkspace';
 import IrisWorkspace from './IrisWorkspace';
+import ArchitectWorkspace from './ArchitectWorkspace';
+import ForgeWorkspace from './ForgeWorkspace';
 
 const statusColor: Record<string, string> = {
   active: '#00ff88',
@@ -22,9 +24,10 @@ interface Props {
   activity: ActivityEntry[];
   onRunAgent: (agentId: string) => void;
   runningAgents: Record<string, RunStatus>;
+  missions: OpticsMission[];
 }
 
-export default function AgentWorkspace({ agent, agents, activity, onRunAgent, runningAgents }: Props) {
+export default function AgentWorkspace({ agent, agents, activity, onRunAgent, runningAgents, missions }: Props) {
   if (!agent) {
     return (
       <div className="h-full flex items-center justify-center bg-[var(--bg-primary)]">
@@ -48,6 +51,16 @@ export default function AgentWorkspace({ agent, agents, activity, onRunAgent, ru
   // Iris gets her own workspace with run button
   if (agent.id === 'iris') {
     return <IrisWorkspace agent={agent} activity={activity} onRunAgent={onRunAgent} runStatus={runningAgents['iris'] || 'idle'} />;
+  }
+
+  // Architect — client package designer
+  if (agent.id === 'architect') {
+    return <ArchitectWorkspace agent={agent} activity={activity} onRunAgent={onRunAgent} runStatus={runningAgents['architect'] || 'idle'} missions={missions} />;
+  }
+
+  // Forge — landing page builder
+  if (agent.id === 'forge') {
+    return <ForgeWorkspace agent={agent} activity={activity} onRunAgent={onRunAgent} runStatus={runningAgents['forge'] || 'idle'} missions={missions} />;
   }
 
   const agentActivity = activity.filter((a) => a.agentId === agent.id).slice(0, 10);

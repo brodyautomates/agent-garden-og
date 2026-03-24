@@ -43,10 +43,11 @@ const AGENT_TAGS: Record<string, string> = {
   iris: 'Leads',
   nova: 'Brand',
   scout: 'Research',
-  forge: 'Funnels',
+  forge: 'Pages',
   echo: 'Content',
   vault: 'Finance',
   atlas: 'Operations',
+  architect: 'Strategy',
 };
 
 const CATEGORY_TAGS: Record<string, string> = {
@@ -58,6 +59,7 @@ const CATEGORY_TAGS: Record<string, string> = {
   research: 'Research',
   finance: 'Finance',
   product: 'Product',
+  strategy: 'Strategy',
   custom: 'Custom',
 };
 

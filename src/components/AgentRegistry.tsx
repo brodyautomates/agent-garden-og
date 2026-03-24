@@ -99,6 +99,26 @@ function AgentIcon({ agentId, color }: { agentId: string; color: string }) {
           <path d="M2 20h20M4 20l2-14 4 6 2-8 2 8 4-6 2 14" />
         </svg>
       );
+    // Architect — compass/drafting
+    case 'architect':
+      return (
+        <svg {...props}>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 3v4M12 17v4M3 12h4M17 12h4" />
+          <path d="M12 12l4-4" />
+          <circle cx="12" cy="12" r="2" fill={color} />
+        </svg>
+      );
+    // Forge — anvil/hammer
+    case 'forge':
+      return (
+        <svg {...props}>
+          <path d="M10 14l-2 8h8l-2-8" />
+          <path d="M6 14h12" />
+          <path d="M4 8l4 6h8l4-6" />
+          <path d="M10 2l2 6 2-6" />
+        </svg>
+      );
     // Iris — eye (lead gen, finding prospects)
     case 'iris':
       return (

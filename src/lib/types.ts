@@ -22,7 +22,7 @@ export interface Agent {
   description: string;
   status: AgentStatus;
   role: AgentRole;
-  category: 'outreach' | 'content' | 'ads' | 'ops' | 'research' | 'sales' | 'finance' | 'product' | 'custom';
+  category: 'outreach' | 'content' | 'ads' | 'ops' | 'research' | 'sales' | 'finance' | 'product' | 'strategy' | 'custom';
   brand?: string;
   connectedTo: string[];
   config: {
@@ -89,6 +89,77 @@ export interface OpticsMission {
   status: RunStatus;
   reports: AgentRunReport[];
   communications: AgentCommunication[];
+}
+
+// Client Package types (Architect + Forge)
+export interface ClientIntake {
+  businessName: string;
+  industry: string;
+  targetCustomer: string;
+  offer: string;
+  pricePoint: string;
+  websiteUrl: string;
+  painPoints: string;
+  uniqueValue: string;
+}
+
+export interface ICPDefinition {
+  description: string;
+  titles: string[];
+  seniorities: string[];
+  industries: string[];
+  employeeRanges: string[];
+  locations: string[];
+  keywords: string[];
+  painPoints: string[];
+  buyingSignals: string[];
+}
+
+export interface EmailSequenceItem {
+  subject: string;
+  body: string;
+  sendDay: number;
+  purpose: string;
+}
+
+export interface LandingPageCopy {
+  headline: string;
+  subheadline: string;
+  bullets: string[];
+  ctaText: string;
+  ctaSubtext: string;
+  socialProof: string[];
+  objectionHandlers: { objection: string; response: string }[];
+  heroDescription: string;
+}
+
+export interface LeadScoringConfig {
+  weights: { factor: string; weight: number; description: string }[];
+  qualificationThreshold: number;
+}
+
+export interface AutomationSchedule {
+  irisFrequency: string;
+  emailCadence: string;
+  followUpRules: string[];
+  dailyLeadTarget: number;
+}
+
+export interface ClientPackage {
+  clientIntake: ClientIntake;
+  icp: ICPDefinition;
+  emailSequences: EmailSequenceItem[];
+  landingPageCopy: LandingPageCopy;
+  leadScoring: LeadScoringConfig;
+  automationSchedule: AutomationSchedule;
+  generatedAt: string;
+}
+
+export interface ForgeOutput {
+  html: string;
+  deployUrl: string | null;
+  sourcePackageId: string;
+  generatedAt: string;
 }
 
 export interface ActivityEntry {

@@ -199,7 +199,7 @@ export default function Lab() {
           <AgentRegistry agents={workers} selectedId={selectedId} onSelect={setSelectedId} onRunAgent={handleRunAgent} runningAgents={runningAgents} />
         </div>
         <div className="flex-1 min-w-0">
-          <AgentWorkspace agent={selectedAgent} agents={agents} activity={activityFeed} onRunAgent={handleRunAgent} runningAgents={runningAgents} />
+          <AgentWorkspace agent={selectedAgent} agents={agents} activity={activityFeed} onRunAgent={handleRunAgent} runningAgents={runningAgents} missions={missions} />
         </div>
         <div className="w-80 shrink-0">
           <ActivityFeed activity={activityFeed} onClickAgent={setSelectedId} />
