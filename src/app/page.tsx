@@ -51,7 +51,7 @@ export default function Lab() {
       </header>
 
       {/* Agent Garden — Chad floats above workers */}
-      <div className="h-[320px] shrink-0 border-b border-[var(--border)] bg-[var(--bg-secondary)] relative">
+      <div className="h-[640px] shrink-0 border-b border-[var(--border)] bg-[var(--bg-secondary)] relative">
         <ConnectionMap
           agents={workers}
           selectedId={selectedId}
