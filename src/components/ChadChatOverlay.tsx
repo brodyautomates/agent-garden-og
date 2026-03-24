@@ -121,7 +121,7 @@ export default function ChadChatOverlay({ isOpen, onClose, agent }: Props) {
         >
           {/* Header */}
           <div className="shrink-0 px-5 py-4 flex items-center gap-4 border-b border-[var(--border)]">
-            <ChadFace size={42} />
+            <ChadFace size={50} />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <span className="text-[15px] text-[var(--text-primary)] tracking-wide uppercase">CHAD</span>

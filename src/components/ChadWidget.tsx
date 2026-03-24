@@ -9,24 +9,57 @@ interface Props {
   onOpenChat: () => void;
 }
 
-function ChadFace({ size = 36 }: { size?: number }) {
+function ChadFace({ size = 44 }: { size?: number }) {
+  const fs = size * 0.2;
   return (
     <div
       className="mono flex items-center justify-center shrink-0 select-none"
       style={{
         width: size,
-        height: size,
+        height: size * 1.15,
         background: 'rgba(0, 0, 0, 0.5)',
-        borderRadius: 6,
+        borderRadius: 8,
         border: '1px solid rgba(255, 51, 51, 0.2)',
       }}
     >
-      <div className="flex flex-col items-center leading-none" style={{ fontSize: size * 0.28 }}>
-        <span style={{ color: 'var(--chad-red)', animation: 'chad-blink 4s infinite' }}>
-          {'> _ <'}
+      <div className="flex flex-col items-center leading-none" style={{ fontSize: fs }}>
+        {/* Eyes — right eye has monocle */}
+        <div className="flex items-center gap-[2px]" style={{ color: 'var(--chad-red)', animation: 'chad-blink 4s infinite' }}>
+          <span>{'>'}</span>
+          <span style={{ fontSize: fs * 0.7 }}>{'_'}</span>
+          <span style={{ position: 'relative' }}>
+            {'O'}
+            {/* Monocle ring */}
+            <span style={{
+              position: 'absolute',
+              top: -2,
+              right: -3,
+              width: fs * 1.3,
+              height: fs * 1.3,
+              borderRadius: '50%',
+              border: '1px solid var(--chad-red)',
+              opacity: 0.6,
+            }} />
+            {/* Monocle chain */}
+            <span style={{
+              position: 'absolute',
+              top: fs * 0.9,
+              right: -1,
+              width: 1,
+              height: fs * 0.8,
+              background: 'var(--chad-red)',
+              opacity: 0.3,
+              transform: 'rotate(15deg)',
+            }} />
+          </span>
+        </div>
+        {/* Moustache */}
+        <span style={{ color: 'var(--chad-red)', fontSize: fs * 0.9, marginTop: 1, opacity: 0.7 }}>
+          {'~}{~'}
         </span>
-        <span style={{ color: 'rgba(255, 51, 51, 0.4)', fontSize: size * 0.2, marginTop: 1 }}>
-          {'---'}
+        {/* Mouth */}
+        <span style={{ color: 'rgba(255, 51, 51, 0.35)', fontSize: fs * 0.8, marginTop: 0 }}>
+          {'___'}
         </span>
       </div>
     </div>
@@ -68,7 +101,7 @@ export default function ChadWidget({ agent, agents, isSelected, onOpenChat }: Pr
 
       {/* Glass card — sits above the glow */}
       <div
-        className="relative rounded-xl px-5 py-3.5 flex items-center gap-4"
+        className="relative rounded-xl px-6 py-4 flex items-center gap-5"
         style={{
           background: 'rgba(10, 10, 15, 0.85)',
           backdropFilter: 'blur(24px)',
@@ -78,7 +111,7 @@ export default function ChadWidget({ agent, agents, isSelected, onOpenChat }: Pr
         }}
       >
         {/* Terminal face */}
-        <ChadFace size={38} />
+        <ChadFace size={48} />
 
         {/* Identity */}
         <div className="flex items-center gap-2.5">
@@ -90,7 +123,7 @@ export default function ChadWidget({ agent, agents, isSelected, onOpenChat }: Pr
               boxShadow: '0 0 8px rgba(255,51,51,0.5)',
             }}
           />
-          <span className="text-[14px] text-[var(--text-primary)] tracking-wide uppercase">CHAD</span>
+          <span className="text-[16px] text-[var(--text-primary)] tracking-wide uppercase">CHAD</span>
           <span className="text-[8px] uppercase tracking-[0.1em] px-1.5 py-0.5 rounded-full text-[var(--chad-red)]"
             style={{ background: 'var(--chad-red-dim)' }}>
             Master
