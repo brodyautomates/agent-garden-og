@@ -3,16 +3,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { Agent } from '@/lib/types';
 
-// 30 demo agent names that spawn in sequence
-const DEMO_NAMES = [
-  'CORE', 'SCRAPER', 'EMAILER', 'SCORER', 'AUDITOR',
-  'BUILDER', 'SCHEDULER', 'SCOUT', 'PITCHER', 'WRITER',
-  'ANALYST', 'MONITOR', 'DEPLOYER', 'ROUTER', 'PARSER',
-  'INDEXER', 'SYNCER', 'MAPPER', 'TRACKER', 'LINKER',
-  'ENCODER', 'RESOLVER', 'WATCHER', 'DISPATCHER', 'COMPILER',
-  'RENDERER', 'LISTENER', 'GATEWAY', 'ORCHESTRATOR', 'SENTINEL',
-];
-
 interface PhysicsNode {
   id: string;
   name: string;
@@ -72,8 +62,6 @@ export default function ConnectionMap({ agents, selectedId, onSelect }: Props) {
   selectedIdRef.current = selectedId;
   hoveredIdRef.current = hoveredId;
 
-  // Use real agents if available, otherwise demo mode
-  const useDemo = agents.length === 0;
   const agentsRef = useRef(agents);
   agentsRef.current = agents;
 
@@ -140,13 +128,14 @@ export default function ConnectionMap({ agents, selectedId, onSelect }: Props) {
       const hovId = hoveredIdRef.current;
 
       // === SPAWN LOGIC ===
-      const totalToSpawn = useDemo ? DEMO_NAMES.length : agentsRef.current.length;
-      const spawnInterval = 0.12; // seconds between spawns — snappy
+      const totalToSpawn = agentsRef.current.length;
+      const spawnInterval = 0.08; // fast spawn cadence
 
       if (spawnIndexRef.current < totalToSpawn && t - lastSpawnRef.current > spawnInterval) {
         const idx = spawnIndexRef.current;
-        const name = useDemo ? DEMO_NAMES[idx] : agentsRef.current[idx].name;
-        const id = useDemo ? `demo-${idx}` : agentsRef.current[idx].id;
+        const agent = agentsRef.current[idx];
+        const name = agent.name;
+        const id = agent.id;
 
         // Compute target position — spiral outward from center
         const goldenAngle = 2.399963; // radians
@@ -160,8 +149,8 @@ export default function ConnectionMap({ agents, selectedId, onSelect }: Props) {
           name,
           x: cx,
           y: cy,
-          vx: (Math.cos(angle) * 8) + (Math.random() - 0.5) * 3,
-          vy: (Math.sin(angle) * 8) + (Math.random() - 0.5) * 3,
+          vx: 0,
+          vy: 0,
           targetX,
           targetY,
           spawnTime: t,
@@ -187,55 +176,41 @@ export default function ConnectionMap({ agents, selectedId, onSelect }: Props) {
         lastSpawnRef.current = t;
       }
 
-      // === PHYSICS UPDATE ===
-      const springStiffness = 0.06;
-      const damping = 0.88;
-      const repulsion = 1200;
+      // === PHYSICS UPDATE — snappy, near-instant ===
+      const lerp = 0.25; // fast interpolation toward target
+      const repulsion = 800;
 
       nodes.forEach(n => {
         if (!n.alive) return;
 
-        // Pop-in scale
+        // Pop-in scale — instant
         const age = t - n.spawnTime;
-        n.scale = Math.min(1, age * 5); // quick pop
+        n.scale = Math.min(1, age * 12);
 
-        // Spring toward target
-        const dx = n.targetX - n.x;
-        const dy = n.targetY - n.y;
-        n.vx += dx * springStiffness;
-        n.vy += dy * springStiffness;
+        // Snap toward target (lerp, no spring oscillation)
+        n.x += (n.targetX - n.x) * lerp;
+        n.y += (n.targetY - n.y) * lerp;
 
-        // Repel from other nodes
+        // Repel from other nodes — keeps them separated
         nodes.forEach(other => {
           if (other.id === n.id || !other.alive) return;
           const rdx = n.x - other.x;
           const rdy = n.y - other.y;
           const dist = Math.sqrt(rdx * rdx + rdy * rdy) || 1;
-          if (dist < 120) {
+          if (dist < 100) {
             const force = repulsion / (dist * dist);
-            n.vx += (rdx / dist) * force;
-            n.vy += (rdy / dist) * force;
+            n.x += (rdx / dist) * force * 0.3;
+            n.y += (rdy / dist) * force * 0.3;
           }
         });
 
-        // Damping
-        n.vx *= damping;
-        n.vy *= damping;
-
-        // Integrate
-        n.x += n.vx;
-        n.y += n.vy;
-
-        // Soft bounds
+        // Clamp to bounds (no bounce)
         const pad = 60;
-        if (n.x < pad) { n.x = pad; n.vx *= -0.5; }
-        if (n.x > w - pad) { n.x = w - pad; n.vx *= -0.5; }
-        if (n.y < pad) { n.y = pad; n.vy *= -0.5; }
-        if (n.y > h - pad) { n.y = h - pad; n.vy *= -0.5; }
+        n.x = Math.max(pad, Math.min(w - pad, n.x));
+        n.y = Math.max(pad, Math.min(h - pad, n.y));
 
         // Gentle drift once settled
-        const settled = age > 2;
-        if (settled) {
+        if (age > 0.5) {
           n.x += Math.sin(t * 0.3 + n.phase) * 0.15;
           n.y += Math.cos(t * 0.25 + n.phase + 1) * 0.12;
         }
@@ -399,7 +374,7 @@ export default function ConnectionMap({ agents, selectedId, onSelect }: Props) {
       running = false;
       cancelAnimationFrame(frameRef.current);
     };
-  }, [dimensions, useDemo]);
+  }, [dimensions]);
 
   // Hit detection
   const getNodeAt = useCallback((clientX: number, clientY: number): string | null => {
