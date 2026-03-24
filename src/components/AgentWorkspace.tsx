@@ -2,6 +2,7 @@
 
 import { Agent, ActivityEntry } from '@/lib/types';
 import MasterWorkspace from './MasterWorkspace';
+import IrisWorkspace from './IrisWorkspace';
 
 const statusColor: Record<string, string> = {
   active: '#00ff88',
@@ -40,6 +41,11 @@ export default function AgentWorkspace({ agent, agents, activity }: Props) {
   // Master agent gets its own workspace
   if (agent.role === 'master' && agent.master) {
     return <MasterWorkspace agent={agent} agents={agents} activity={activity} />;
+  }
+
+  // Iris gets her own workspace with run button
+  if (agent.id === 'iris') {
+    return <IrisWorkspace agent={agent} activity={activity} />;
   }
 
   const agentActivity = activity.filter((a) => a.agentId === agent.id).slice(0, 10);
