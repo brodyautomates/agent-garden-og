@@ -48,6 +48,13 @@ export interface Agent {
   };
 }
 
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'chad';
+  content: string;
+  timestamp: string;
+}
+
 export interface ActivityEntry {
   id: string;
   agentId: string;

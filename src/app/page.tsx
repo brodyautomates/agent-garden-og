@@ -6,6 +6,7 @@ import AgentRegistry from '@/components/AgentRegistry';
 import AgentWorkspace from '@/components/AgentWorkspace';
 import ActivityFeed from '@/components/ActivityFeed';
 import ChadWidget from '@/components/ChadWidget';
+import ChadChatOverlay from '@/components/ChadChatOverlay';
 import { agents, activityFeed } from '@/lib/data';
 
 export default function Lab() {
@@ -14,6 +15,7 @@ export default function Lab() {
 
   const [selectedId, setSelectedId] = useState<string | null>(chad?.id ?? workers[0]?.id ?? null);
   const selectedAgent = agents.find((a) => a.id === selectedId) ?? null;
+  const [chatOpen, setChatOpen] = useState(false);
 
   const activeCount = agents.filter((a) => a.status === 'active').length;
 
@@ -57,12 +59,15 @@ export default function Lab() {
         />
         {/* Chad widget floating inside the garden */}
         {chad && (
-          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10">
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10">
             <ChadWidget
               agent={chad}
               agents={agents}
               isSelected={selectedId === chad.id}
-              onSelect={() => setSelectedId(chad.id)}
+              onOpenChat={() => {
+                setSelectedId(chad.id);
+                setChatOpen(true);
+              }}
             />
           </div>
         )}
@@ -96,6 +101,15 @@ export default function Lab() {
           />
         </div>
       </div>
+
+      {/* Chad Chat Overlay */}
+      {chad && (
+        <ChadChatOverlay
+          isOpen={chatOpen}
+          onClose={() => setChatOpen(false)}
+          agent={chad}
+        />
+      )}
     </div>
   );
 }
