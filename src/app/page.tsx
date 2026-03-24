@@ -181,9 +181,9 @@ export default function Lab() {
 
       {/* Agent Garden */}
       <div className="h-[480px] shrink-0 border-b border-[var(--border)] bg-[var(--bg-secondary)] relative">
-        <ConnectionMap agents={workers} selectedId={selectedId} onSelect={setSelectedId} />
+        <ConnectionMap agents={workers} selectedId={selectedId} onSelect={setSelectedId} runningAgents={runningAgents} />
         {chad && (
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10">
+          <div className="absolute top-1/2 -translate-y-1/2 left-[8%] z-10">
             <ChadWidget
               agent={chad} agents={agents} isSelected={selectedId === chad.id}
               onOpenChat={() => { setSelectedId(chad.id); setChatOpen(true); }}

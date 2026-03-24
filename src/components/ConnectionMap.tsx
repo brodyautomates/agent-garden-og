@@ -65,9 +65,10 @@ interface Props {
   agents: Agent[];
   selectedId: string | null;
   onSelect: (id: string | null) => void;
+  runningAgents?: Record<string, string>;
 }
 
-export default function ConnectionMap({ agents, selectedId, onSelect }: Props) {
+export default function ConnectionMap({ agents, selectedId, onSelect, runningAgents = {} }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const nodesRef = useRef<PhysicsNode[]>([]);
@@ -83,6 +84,8 @@ export default function ConnectionMap({ agents, selectedId, onSelect }: Props) {
   const selectedIdRef = useRef(selectedId);
   const hoveredIdRef = useRef(hoveredId);
   selectedIdRef.current = selectedId;
+  const runningRef = useRef(runningAgents);
+  runningRef.current = runningAgents;
   hoveredIdRef.current = hoveredId;
 
   const agentsRef = useRef(agents);
@@ -130,15 +133,15 @@ export default function ConnectionMap({ agents, selectedId, onSelect }: Props) {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    let running = true;
+    let animating = true;
     const dpr = window.devicePixelRatio || 1;
     const w = dimensions.width;
     const h = dimensions.height;
-    const cx = w / 2;
-    const cy = h * 0.58; // offset down so agents don't overlap Chad widget
+    const cx = w * 0.6; // right side — Chad floats on the left
+    const cy = h * 0.5; // vertically centered
 
     const draw = () => {
-      if (!running) return;
+      if (!animating) return;
       const t = timeRef.current;
       timeRef.current += 0.016;
 
@@ -329,24 +332,28 @@ export default function ConnectionMap({ agents, selectedId, onSelect }: Props) {
       }
 
       // === DRAW NODES ===
+      const running = runningRef.current;
+
       aliveNodes.forEach(node => {
         const isSelected = selId === node.id;
         const isHovered = hovId === node.id;
+        const isRunning = running[node.id] === 'running';
 
         const x = node.x * dpr;
         const y = node.y * dpr;
         const s = node.scale;
 
-        // Green by default, red when selected
-        const cr = isSelected ? 255 : 0;
-        const cg = isSelected ? 50 : 255;
-        const cb = isSelected ? 50 : 136;
+        // Blue when running, red when selected, green default
+        const cr = isRunning ? 60 : isSelected ? 255 : 0;
+        const cg = isRunning ? 140 : isSelected ? 50 : 255;
+        const cb = isRunning ? 255 : isSelected ? 50 : 136;
 
-        // Outer glow haze
-        const hazeR = (isSelected ? 60 : isHovered ? 48 : 40) * s * dpr;
+        // Outer glow haze — pulses when running
+        const runPulse = isRunning ? 0.5 + Math.sin(t * 4) * 0.5 : 1; // fast pulse
+        const hazeR = (isRunning ? 55 : isSelected ? 60 : isHovered ? 48 : 40) * s * dpr * (isRunning ? (0.85 + runPulse * 0.3) : 1);
         if (hazeR > 0) {
           const grad = ctx.createRadialGradient(x, y, 0, x, y, hazeR);
-          const hazeAlpha = (isSelected ? 0.18 : 0.1) * s;
+          const hazeAlpha = (isRunning ? 0.2 * runPulse : isSelected ? 0.18 : 0.1) * s;
           grad.addColorStop(0, `rgba(${cr}, ${cg}, ${cb}, ${hazeAlpha})`);
           grad.addColorStop(0.5, `rgba(${cr}, ${cg}, ${cb}, ${hazeAlpha * 0.3})`);
           grad.addColorStop(1, `rgba(${cr}, ${cg}, ${cb}, 0)`);
@@ -403,7 +410,7 @@ export default function ConnectionMap({ agents, selectedId, onSelect }: Props) {
 
     frameRef.current = requestAnimationFrame(draw);
     return () => {
-      running = false;
+      animating = false;
       cancelAnimationFrame(frameRef.current);
     };
   }, [dimensions]);
