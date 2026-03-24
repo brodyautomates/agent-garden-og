@@ -5,12 +5,14 @@ import ConnectionMap from '@/components/ConnectionMap';
 import AgentRegistry from '@/components/AgentRegistry';
 import AgentWorkspace from '@/components/AgentWorkspace';
 import ActivityFeed from '@/components/ActivityFeed';
+import ChadWidget from '@/components/ChadWidget';
 import { agents, activityFeed } from '@/lib/data';
 
 export default function Lab() {
-  const [selectedId, setSelectedId] = useState<string | null>(
-    agents.find(a => a.role === 'master')?.id ?? agents[0]?.id ?? null
-  );
+  const chad = agents.find(a => a.role === 'master') ?? null;
+  const workers = agents.filter(a => a.role === 'worker');
+
+  const [selectedId, setSelectedId] = useState<string | null>(chad?.id ?? workers[0]?.id ?? null);
   const selectedAgent = agents.find((a) => a.id === selectedId) ?? null;
 
   const activeCount = agents.filter((a) => a.status === 'active').length;
@@ -46,10 +48,22 @@ export default function Lab() {
         </div>
       </header>
 
-      {/* Connection Map */}
-      <div className="h-[300px] shrink-0 border-b border-[var(--border)] bg-[var(--bg-secondary)]">
+      {/* Chad Widget — floating above the garden */}
+      {chad && (
+        <div className="shrink-0 px-5 py-3 border-b border-[var(--border)] bg-[var(--bg-secondary)]">
+          <ChadWidget
+            agent={chad}
+            agents={agents}
+            isSelected={selectedId === chad.id}
+            onSelect={() => setSelectedId(chad.id)}
+          />
+        </div>
+      )}
+
+      {/* Agent Garden (Connection Map) — workers only */}
+      <div className="h-[280px] shrink-0 border-b border-[var(--border)] bg-[var(--bg-secondary)]">
         <ConnectionMap
-          agents={agents}
+          agents={workers}
           selectedId={selectedId}
           onSelect={setSelectedId}
         />
@@ -57,10 +71,10 @@ export default function Lab() {
 
       {/* Three columns — workbench */}
       <div className="flex-1 flex min-h-0">
-        {/* Left — Agent Registry */}
+        {/* Left — Agent Registry (workers only) */}
         <div className="w-60 shrink-0">
           <AgentRegistry
-            agents={agents}
+            agents={workers}
             selectedId={selectedId}
             onSelect={setSelectedId}
           />
