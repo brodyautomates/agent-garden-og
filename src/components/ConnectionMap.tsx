@@ -64,7 +64,7 @@ const CATEGORY_TAGS: Record<string, string> = {
 interface Props {
   agents: Agent[];
   selectedId: string | null;
-  onSelect: (id: string) => void;
+  onSelect: (id: string | null) => void;
 }
 
 export default function ConnectionMap({ agents, selectedId, onSelect }: Props) {
@@ -427,7 +427,7 @@ export default function ConnectionMap({ agents, selectedId, onSelect }: Props) {
 
   const handleClick = useCallback((e: React.MouseEvent) => {
     const id = getNodeAt(e.clientX, e.clientY);
-    if (id) onSelect(id);
+    onSelect(id);
   }, [getNodeAt, onSelect]);
 
   const handleMove = useCallback((e: React.MouseEvent) => {
