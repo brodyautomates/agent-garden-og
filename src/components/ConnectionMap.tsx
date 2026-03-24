@@ -210,7 +210,7 @@ export default function ConnectionMap({ agents, selectedId, onSelect }: Props) {
         ctx.fill();
       });
 
-      // Draw edges
+      // Draw edges — white lines between all connected agents
       agents.forEach(agent => {
         const n1 = nodes.find(n => n.id === agent.id);
         if (!n1) return;
@@ -218,9 +218,7 @@ export default function ConnectionMap({ agents, selectedId, onSelect }: Props) {
           const n2 = nodes.find(n => n.id === tid);
           if (!n2) return;
 
-          const isHighlighted = selId && (selId === n1.id || selId === n2.id);
-          const isActive = agent.status === 'active';
-          const dimmed = selId && !isHighlighted;
+          const isSelected = selId && (selId === n1.id || selId === n2.id);
 
           // Organic curve — slight wobble
           const dx = n2.x - n1.x;
@@ -232,120 +230,114 @@ export default function ConnectionMap({ agents, selectedId, onSelect }: Props) {
           const cpx = (n1.x + n2.x) / 2 + nx * wobble;
           const cpy = (n1.y + n2.y) / 2 + ny * wobble;
 
-          // Glow layer
-          if (isHighlighted) {
-            ctx.beginPath();
-            ctx.moveTo(n1.x * dpr, n1.y * dpr);
-            ctx.quadraticCurveTo(cpx * dpr, cpy * dpr, n2.x * dpr, n2.y * dpr);
-            ctx.strokeStyle = isActive ? 'rgba(0, 255, 136, 0.06)' : 'rgba(140, 140, 170, 0.04)';
-            ctx.lineWidth = 6 * dpr;
-            ctx.stroke();
-          }
-
+          // Glow layer — always visible
           ctx.beginPath();
           ctx.moveTo(n1.x * dpr, n1.y * dpr);
           ctx.quadraticCurveTo(cpx * dpr, cpy * dpr, n2.x * dpr, n2.y * dpr);
-
-          if (isHighlighted) {
-            ctx.strokeStyle = isActive ? 'rgba(0, 255, 136, 0.35)' : 'rgba(140, 140, 170, 0.2)';
-            ctx.lineWidth = 1.2 * dpr;
+          if (isSelected) {
+            ctx.strokeStyle = 'rgba(255, 50, 50, 0.1)';
           } else {
-            ctx.strokeStyle = dimmed ? 'rgba(255, 255, 255, 0.015)' : 'rgba(255, 255, 255, 0.04)';
-            ctx.lineWidth = 0.6 * dpr;
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+          }
+          ctx.lineWidth = 6 * dpr;
+          ctx.stroke();
+
+          // Main line — white by default, red when selected
+          ctx.beginPath();
+          ctx.moveTo(n1.x * dpr, n1.y * dpr);
+          ctx.quadraticCurveTo(cpx * dpr, cpy * dpr, n2.x * dpr, n2.y * dpr);
+          if (isSelected) {
+            ctx.strokeStyle = 'rgba(255, 50, 50, 0.5)';
+            ctx.lineWidth = 1.5 * dpr;
+          } else {
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+            ctx.lineWidth = 0.8 * dpr;
           }
           ctx.stroke();
 
-          // Traveling particle on highlighted active edges
-          if (isHighlighted && isActive) {
-            const progress = (t * 0.3 + n1.phase) % 1;
-            const tp = progress;
-            const invT = 1 - tp;
-            const px = invT * invT * n1.x + 2 * invT * tp * cpx + tp * tp * n2.x;
-            const py = invT * invT * n1.y + 2 * invT * tp * cpy + tp * tp * n2.y;
+          // Traveling particle on all edges
+          const progress = (t * 0.3 + n1.phase) % 1;
+          const tp = progress;
+          const invT = 1 - tp;
+          const px = invT * invT * n1.x + 2 * invT * tp * cpx + tp * tp * n2.x;
+          const py = invT * invT * n1.y + 2 * invT * tp * cpy + tp * tp * n2.y;
 
+          const dotColor = isSelected ? '255, 50, 50' : '0, 255, 136';
+
+          ctx.beginPath();
+          ctx.arc(px * dpr, py * dpr, 1.5 * dpr, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${dotColor}, 0.5)`;
+          ctx.fill();
+
+          // Trail
+          for (let tr = 1; tr <= 3; tr++) {
+            const tpT = ((t * 0.3 + n1.phase) - tr * 0.03) % 1;
+            const tpTc = tpT < 0 ? tpT + 1 : tpT;
+            const invTT = 1 - tpTc;
+            const trx = invTT * invTT * n1.x + 2 * invTT * tpTc * cpx + tpTc * tpTc * n2.x;
+            const trY = invTT * invTT * n1.y + 2 * invTT * tpTc * cpy + tpTc * tpTc * n2.y;
             ctx.beginPath();
-            ctx.arc(px * dpr, py * dpr, 1.5 * dpr, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(0, 255, 136, 0.5)';
+            ctx.arc(trx * dpr, trY * dpr, (1.2 - tr * 0.3) * dpr, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${dotColor}, ${0.3 - tr * 0.08})`;
             ctx.fill();
-
-            // Trail
-            for (let tr = 1; tr <= 3; tr++) {
-              const tpT = ((t * 0.3 + n1.phase) - tr * 0.03) % 1;
-              const tpTc = tpT < 0 ? tpT + 1 : tpT;
-              const invTT = 1 - tpTc;
-              const trx = invTT * invTT * n1.x + 2 * invTT * tpTc * cpx + tpTc * tpTc * n2.x;
-              const trY = invTT * invTT * n1.y + 2 * invTT * tpTc * cpy + tpTc * tpTc * n2.y;
-              ctx.beginPath();
-              ctx.arc(trx * dpr, trY * dpr, (1.2 - tr * 0.3) * dpr, 0, Math.PI * 2);
-              ctx.fillStyle = `rgba(0, 255, 136, ${0.3 - tr * 0.08})`;
-              ctx.fill();
-            }
           }
         });
       });
 
-      // Draw nodes
+      // Draw nodes — all green/glowing, red when selected
       nodes.forEach(node => {
         const agent = agents.find(a => a.id === node.id);
         if (!agent) return;
 
         const isSelected = selId === node.id;
-        const isConn = connSet.has(node.id);
         const isHovered = hovId === node.id;
-        const dimmed = selId !== null && !isSelected && !isConn;
-        const isActive = agent.status === 'active';
-        const color = statusColor[agent.status];
 
         const x = node.x * dpr;
         const y = node.y * dpr;
 
-        // Parse color for rgba
-        const r = parseInt(color.slice(1, 3), 16);
-        const g = parseInt(color.slice(3, 5), 16);
-        const b = parseInt(color.slice(5, 7), 16);
+        // Green by default, red when selected
+        const cr = isSelected ? 255 : 0;
+        const cg = isSelected ? 50 : 255;
+        const cb = isSelected ? 50 : 136;
 
-        // Outer haze
-        if (!dimmed) {
-          const hazeR = (isSelected ? 50 : isActive ? 35 : 20) * dpr;
-          const grad = ctx.createRadialGradient(x, y, 0, x, y, hazeR);
-          const baseAlpha = isSelected ? 0.15 : isActive ? 0.08 : 0.03;
-          grad.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${baseAlpha})`);
-          grad.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
-          ctx.beginPath();
-          ctx.arc(x, y, hazeR, 0, Math.PI * 2);
-          ctx.fillStyle = grad;
-          ctx.fill();
-        }
+        // Outer glow haze — always visible
+        const hazeR = (isSelected ? 55 : isHovered ? 40 : 35) * dpr;
+        const grad = ctx.createRadialGradient(x, y, 0, x, y, hazeR);
+        const hazeAlpha = isSelected ? 0.18 : 0.1;
+        grad.addColorStop(0, `rgba(${cr}, ${cg}, ${cb}, ${hazeAlpha})`);
+        grad.addColorStop(0.5, `rgba(${cr}, ${cg}, ${cb}, ${hazeAlpha * 0.3})`);
+        grad.addColorStop(1, `rgba(${cr}, ${cg}, ${cb}, 0)`);
+        ctx.beginPath();
+        ctx.arc(x, y, hazeR, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
 
         // Breathing ring for selected
         if (isSelected) {
-          const ringR = (22 + Math.sin(t * 1.5) * 3) * dpr;
+          const ringR = (24 + Math.sin(t * 1.5) * 3) * dpr;
           ctx.beginPath();
           ctx.arc(x, y, ringR, 0, Math.PI * 2);
-          ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${0.12 + Math.sin(t * 1.5) * 0.05})`;
+          ctx.strokeStyle = `rgba(${cr}, ${cg}, ${cb}, ${0.15 + Math.sin(t * 1.5) * 0.06})`;
           ctx.lineWidth = 0.8 * dpr;
           ctx.stroke();
         }
 
-        // Core dot
-        const coreR = (isSelected ? 5 : isHovered ? 4.5 : 3.5) * dpr;
-        const coreAlpha = dimmed ? 0.15 : isSelected ? 1 : isActive ? 0.8 : 0.35;
+        // Core dot — green glow, red when selected
+        const coreR = (isSelected ? 5.5 : isHovered ? 5 : 4) * dpr;
 
         ctx.beginPath();
         ctx.arc(x, y, coreR, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${coreAlpha})`;
+        ctx.fillStyle = `rgba(${cr}, ${cg}, ${cb}, 0.85)`;
         ctx.fill();
 
         // Inner bright point
-        if (!dimmed) {
-          ctx.beginPath();
-          ctx.arc(x, y, 1.5 * dpr, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(255, 255, 255, ${isSelected ? 0.7 : isActive ? 0.4 : 0.15})`;
-          ctx.fill();
-        }
+        ctx.beginPath();
+        ctx.arc(x, y, 1.5 * dpr, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 255, ${isSelected ? 0.8 : 0.5})`;
+        ctx.fill();
 
         // Label
-        const labelAlpha = dimmed ? 0.08 : isSelected ? 0.85 : isHovered ? 0.7 : isConn ? 0.45 : 0.2;
+        const labelAlpha = isSelected ? 0.9 : isHovered ? 0.7 : 0.35;
         ctx.font = `${isSelected ? 500 : 400} ${(isSelected ? 10.5 : 9.5) * dpr}px Inter, sans-serif`;
         ctx.textAlign = 'center';
         ctx.fillStyle = `rgba(232, 232, 237, ${labelAlpha})`;
@@ -356,7 +348,7 @@ export default function ConnectionMap({ agents, selectedId, onSelect }: Props) {
         );
 
         // Brand sublabel
-        if (agent.brand && !dimmed) {
+        if (agent.brand) {
           ctx.font = `400 ${7.5 * dpr}px Inter, sans-serif`;
           ctx.fillStyle = `rgba(232, 232, 237, ${labelAlpha * 0.5})`;
           ctx.fillText(agent.brand, x, y + (isSelected ? 28 : 26) * dpr);
