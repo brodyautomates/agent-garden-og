@@ -8,14 +8,99 @@ const statusColor: Record<string, string> = {
   error: '#ff4466',
 };
 
-const categoryIcon: Record<string, string> = {
-  outreach: 'O',
-  content: 'C',
-  ads: 'A',
-  ops: 'S',
-  research: 'R',
-  custom: 'X',
-};
+// Per-agent SVG icons
+function AgentIcon({ agentId, color }: { agentId: string; color: string }) {
+  const props = { width: 16, height: 16, viewBox: '0 0 24 24', fill: 'none', stroke: color, strokeWidth: 1.8, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
+
+  switch (agentId) {
+    // Lead Scraper — crosshair/target
+    case 'lead-scraper':
+      return (
+        <svg {...props}>
+          <circle cx="12" cy="12" r="8" />
+          <circle cx="12" cy="12" r="3" />
+          <path d="M12 2v4M12 18v4M2 12h4M18 12h4" />
+        </svg>
+      );
+    // Cold Emailer — send/paper plane
+    case 'cold-emailer':
+      return (
+        <svg {...props}>
+          <path d="M22 2L11 13" />
+          <path d="M22 2L15 22L11 13L2 9L22 2Z" />
+        </svg>
+      );
+    // Lead Scorer — bar chart / ranking
+    case 'lead-scorer':
+      return (
+        <svg {...props}>
+          <path d="M18 20V10M12 20V4M6 20v-6" />
+        </svg>
+      );
+    // Ad Builder — brush/wand
+    case 'ad-builder':
+      return (
+        <svg {...props}>
+          <path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3Z" />
+          <path d="M18 18l1 3 3 1-3 1-1 3-1-3-3-1 3-1 1-3Z" opacity="0.5" />
+        </svg>
+      );
+    // Ad Auditor — shield check
+    case 'ad-auditor':
+      return (
+        <svg {...props}>
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
+          <path d="M9 12l2 2 4-4" />
+        </svg>
+      );
+    // Content Repurposer — scissors/split
+    case 'content-repurposer':
+      return (
+        <svg {...props}>
+          <path d="M4 20l7-7M14 14l7 7M4 4l16 16" />
+          <circle cx="18" cy="6" r="3" />
+          <circle cx="6" cy="18" r="3" />
+        </svg>
+      );
+    // Content Scheduler — calendar clock
+    case 'content-scheduler':
+      return (
+        <svg {...props}>
+          <rect x="3" y="4" width="18" height="18" rx="2" />
+          <path d="M16 2v4M8 2v4M3 10h18" />
+          <circle cx="12" cy="16" r="2.5" />
+          <path d="M12 14.5V16l1 1" />
+        </svg>
+      );
+    // Brand Scout — binoculars/compass
+    case 'brand-scout':
+      return (
+        <svg {...props}>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 3v4M12 17v4" />
+          <path d="M3 12h4M17 12h4" />
+          <path d="M12 12l3-3" />
+          <circle cx="12" cy="12" r="1.5" fill={color} />
+        </svg>
+      );
+    // Deal Pitcher — handshake/megaphone
+    case 'deal-pitcher':
+      return (
+        <svg {...props}>
+          <path d="M3 11l6-4v16l-6-4V11Z" />
+          <path d="M9 8l9-4v20l-9-4" />
+          <path d="M19 10c1.5 1 1.5 3 0 4" />
+        </svg>
+      );
+    default:
+      return (
+        <svg {...props}>
+          <circle cx="12" cy="12" r="8" />
+          <path d="M12 8v4M12 16h.01" />
+        </svg>
+      );
+  }
+}
 
 interface Props {
   agents: Agent[];
@@ -49,6 +134,7 @@ export default function AgentRegistry({ agents, selectedId, onSelect }: Props) {
               .filter((a) => a.category === cat)
               .map((agent) => {
                 const isSelected = selectedId === agent.id;
+                const iconColor = isSelected ? 'var(--accent)' : 'var(--text-muted)';
                 return (
                   <button
                     key={agent.id}
@@ -59,16 +145,15 @@ export default function AgentRegistry({ agents, selectedId, onSelect }: Props) {
                         : 'hover:bg-[var(--bg-card-hover)]'
                     }`}
                   >
-                    {/* Category badge */}
+                    {/* Agent icon */}
                     <div
-                      className="w-7 h-7 rounded-md flex items-center justify-center shrink-0 text-[10px] font-semibold mono"
+                      className="w-7 h-7 rounded-md flex items-center justify-center shrink-0"
                       style={{
                         background: isSelected ? 'var(--accent-dim)' : 'var(--bg-card)',
-                        color: isSelected ? 'var(--accent)' : 'var(--text-muted)',
                         border: `1px solid ${isSelected ? 'var(--border-active)' : 'var(--border)'}`,
                       }}
                     >
-                      {categoryIcon[agent.category]}
+                      <AgentIcon agentId={agent.id} color={iconColor} />
                     </div>
 
                     <div className="min-w-0 flex-1">
