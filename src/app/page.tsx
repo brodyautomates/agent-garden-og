@@ -8,7 +8,7 @@ import ActivityFeed from '@/components/ActivityFeed';
 import OpticsPanel from '@/components/OpticsPanel';
 import ChadWidget from '@/components/ChadWidget';
 import ChadChatOverlay from '@/components/ChadChatOverlay';
-import { agents, activityFeed } from '@/lib/data';
+import { agents, activityFeed, sampleMissions } from '@/lib/data';
 import { RunStatus, OpticsMission, AgentRunReport, AgentCommunication } from '@/lib/types';
 
 const now = () => new Date().toLocaleTimeString('en-US', { hour12: false });
@@ -23,7 +23,7 @@ export default function Lab() {
   const [chatOpen, setChatOpen] = useState(false);
   const [rightTab, setRightTab] = useState<'activity' | 'optics'>('activity');
   const [runningAgents, setRunningAgents] = useState<Record<string, RunStatus>>({});
-  const [missions, setMissions] = useState<OpticsMission[]>([]);
+  const [missions, setMissions] = useState<OpticsMission[]>(sampleMissions);
 
   const activeCount = agents.filter((a) => a.status === 'active').length;
 
