@@ -1,36 +1,5 @@
 import { Agent, ActivityEntry } from './types';
 
-export const agents: Agent[] = [
-  { id: 'demo-0', name: 'CORE', description: 'Central orchestration hub', status: 'active', category: 'ops', connectedTo: [], config: { schedule: 'Always on', api: 'Internal' }, stats: { runs: 0, lastRun: '—', avgDuration: '—' } },
-  { id: 'demo-1', name: 'SCRAPER', description: 'Data extraction agent', status: 'active', category: 'outreach', connectedTo: [], config: { schedule: 'Every 6h', api: 'Web' }, stats: { runs: 0, lastRun: '—', avgDuration: '—' } },
-  { id: 'demo-2', name: 'EMAILER', description: 'Cold outreach automation', status: 'active', category: 'outreach', connectedTo: [], config: { schedule: 'Every 4h', api: 'Instantly API' }, stats: { runs: 0, lastRun: '—', avgDuration: '—' } },
-  { id: 'demo-3', name: 'SCORER', description: 'Lead scoring engine', status: 'idle', category: 'ops', connectedTo: [], config: { schedule: 'Every 1h', api: 'Internal' }, stats: { runs: 0, lastRun: '—', avgDuration: '—' } },
-  { id: 'demo-4', name: 'AUDITOR', description: 'Performance auditing', status: 'active', category: 'ads', connectedTo: [], config: { schedule: 'Every 2h', api: 'Meta Ads API' }, stats: { runs: 0, lastRun: '—', avgDuration: '—' } },
-  { id: 'demo-5', name: 'BUILDER', description: 'Creative generation', status: 'active', category: 'ads', connectedTo: [], config: { schedule: 'On demand', api: 'OpenAI API' }, stats: { runs: 0, lastRun: '—', avgDuration: '—' } },
-  { id: 'demo-6', name: 'SCHEDULER', description: 'Content scheduling', status: 'idle', category: 'content', connectedTo: [], config: { schedule: 'Continuous', api: 'Buffer API' }, stats: { runs: 0, lastRun: '—', avgDuration: '—' } },
-  { id: 'demo-7', name: 'SCOUT', description: 'Market reconnaissance', status: 'active', category: 'research', connectedTo: [], config: { schedule: 'Every 12h', api: 'Web scraping' }, stats: { runs: 0, lastRun: '—', avgDuration: '—' } },
-  { id: 'demo-8', name: 'PITCHER', description: 'Deal outreach drafting', status: 'idle', category: 'research', connectedTo: [], config: { schedule: 'On demand', api: 'Gmail API' }, stats: { runs: 0, lastRun: '—', avgDuration: '—' } },
-  { id: 'demo-9', name: 'WRITER', description: 'Long-form content generation', status: 'active', category: 'content', connectedTo: [], config: { schedule: 'Daily', api: 'OpenAI API' }, stats: { runs: 0, lastRun: '—', avgDuration: '—' } },
-  { id: 'demo-10', name: 'ANALYST', description: 'Data analysis pipeline', status: 'active', category: 'ops', connectedTo: [], config: { schedule: 'Every 3h', api: 'Internal' }, stats: { runs: 0, lastRun: '—', avgDuration: '—' } },
-  { id: 'demo-11', name: 'MONITOR', description: 'System health monitoring', status: 'active', category: 'ops', connectedTo: [], config: { schedule: 'Always on', api: 'Internal' }, stats: { runs: 0, lastRun: '—', avgDuration: '—' } },
-  { id: 'demo-12', name: 'DEPLOYER', description: 'Automated deployment', status: 'idle', category: 'ops', connectedTo: [], config: { schedule: 'On trigger', api: 'Vercel API' }, stats: { runs: 0, lastRun: '—', avgDuration: '—' } },
-  { id: 'demo-13', name: 'ROUTER', description: 'Task routing engine', status: 'active', category: 'ops', connectedTo: [], config: { schedule: 'Always on', api: 'Internal' }, stats: { runs: 0, lastRun: '—', avgDuration: '—' } },
-  { id: 'demo-14', name: 'PARSER', description: 'Input parsing and normalization', status: 'active', category: 'ops', connectedTo: [], config: { schedule: 'Always on', api: 'Internal' }, stats: { runs: 0, lastRun: '—', avgDuration: '—' } },
-  { id: 'demo-15', name: 'INDEXER', description: 'Knowledge base indexing', status: 'idle', category: 'research', connectedTo: [], config: { schedule: 'Every 6h', api: 'Internal' }, stats: { runs: 0, lastRun: '—', avgDuration: '—' } },
-  { id: 'demo-16', name: 'SYNCER', description: 'Cross-platform data sync', status: 'active', category: 'ops', connectedTo: [], config: { schedule: 'Every 30m', api: 'Multi' }, stats: { runs: 0, lastRun: '—', avgDuration: '—' } },
-  { id: 'demo-17', name: 'MAPPER', description: 'Relationship mapping', status: 'idle', category: 'research', connectedTo: [], config: { schedule: 'Every 12h', api: 'Internal' }, stats: { runs: 0, lastRun: '—', avgDuration: '—' } },
-  { id: 'demo-18', name: 'TRACKER', description: 'Goal and KPI tracking', status: 'active', category: 'ops', connectedTo: [], config: { schedule: 'Every 1h', api: 'Internal' }, stats: { runs: 0, lastRun: '—', avgDuration: '—' } },
-  { id: 'demo-19', name: 'LINKER', description: 'Entity linking and deduplication', status: 'idle', category: 'ops', connectedTo: [], config: { schedule: 'Every 6h', api: 'Internal' }, stats: { runs: 0, lastRun: '—', avgDuration: '—' } },
-  { id: 'demo-20', name: 'ENCODER', description: 'Embedding generation', status: 'active', category: 'research', connectedTo: [], config: { schedule: 'On demand', api: 'OpenAI API' }, stats: { runs: 0, lastRun: '—', avgDuration: '—' } },
-  { id: 'demo-21', name: 'RESOLVER', description: 'Conflict resolution engine', status: 'idle', category: 'ops', connectedTo: [], config: { schedule: 'Always on', api: 'Internal' }, stats: { runs: 0, lastRun: '—', avgDuration: '—' } },
-  { id: 'demo-22', name: 'WATCHER', description: 'Change detection', status: 'active', category: 'ops', connectedTo: [], config: { schedule: 'Always on', api: 'Internal' }, stats: { runs: 0, lastRun: '—', avgDuration: '—' } },
-  { id: 'demo-23', name: 'DISPATCHER', description: 'Event dispatch system', status: 'active', category: 'ops', connectedTo: [], config: { schedule: 'Always on', api: 'Internal' }, stats: { runs: 0, lastRun: '—', avgDuration: '—' } },
-  { id: 'demo-24', name: 'COMPILER', description: 'Report compilation', status: 'idle', category: 'content', connectedTo: [], config: { schedule: 'Daily', api: 'Internal' }, stats: { runs: 0, lastRun: '—', avgDuration: '—' } },
-  { id: 'demo-25', name: 'RENDERER', description: 'Output rendering', status: 'active', category: 'content', connectedTo: [], config: { schedule: 'On demand', api: 'Internal' }, stats: { runs: 0, lastRun: '—', avgDuration: '—' } },
-  { id: 'demo-26', name: 'LISTENER', description: 'Webhook listener', status: 'active', category: 'ops', connectedTo: [], config: { schedule: 'Always on', api: 'Internal' }, stats: { runs: 0, lastRun: '—', avgDuration: '—' } },
-  { id: 'demo-27', name: 'GATEWAY', description: 'API gateway management', status: 'active', category: 'ops', connectedTo: [], config: { schedule: 'Always on', api: 'Internal' }, stats: { runs: 0, lastRun: '—', avgDuration: '—' } },
-  { id: 'demo-28', name: 'ORCHESTRATOR', description: 'Multi-agent orchestration', status: 'active', category: 'ops', connectedTo: [], config: { schedule: 'Always on', api: 'Internal' }, stats: { runs: 0, lastRun: '—', avgDuration: '—' } },
-  { id: 'demo-29', name: 'SENTINEL', description: 'Security and anomaly detection', status: 'active', category: 'ops', connectedTo: [], config: { schedule: 'Always on', api: 'Internal' }, stats: { runs: 0, lastRun: '—', avgDuration: '—' } },
-];
+export const agents: Agent[] = [];
 
 export const activityFeed: ActivityEntry[] = [];
