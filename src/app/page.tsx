@@ -48,25 +48,24 @@ export default function Lab() {
         </div>
       </header>
 
-      {/* Chad Widget — floating above the garden */}
-      {chad && (
-        <div className="shrink-0 px-5 py-3 border-b border-[var(--border)] bg-[var(--bg-secondary)]">
-          <ChadWidget
-            agent={chad}
-            agents={agents}
-            isSelected={selectedId === chad.id}
-            onSelect={() => setSelectedId(chad.id)}
-          />
-        </div>
-      )}
-
-      {/* Agent Garden (Connection Map) — workers only */}
-      <div className="h-[280px] shrink-0 border-b border-[var(--border)] bg-[var(--bg-secondary)]">
+      {/* Agent Garden — Chad floats above workers */}
+      <div className="h-[320px] shrink-0 border-b border-[var(--border)] bg-[var(--bg-secondary)] relative">
         <ConnectionMap
           agents={workers}
           selectedId={selectedId}
           onSelect={setSelectedId}
         />
+        {/* Chad widget floating inside the garden */}
+        {chad && (
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10">
+            <ChadWidget
+              agent={chad}
+              agents={agents}
+              isSelected={selectedId === chad.id}
+              onSelect={() => setSelectedId(chad.id)}
+            />
+          </div>
+        )}
       </div>
 
       {/* Three columns — workbench */}
