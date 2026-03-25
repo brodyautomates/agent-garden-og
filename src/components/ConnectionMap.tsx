@@ -168,7 +168,7 @@ export default function ConnectionMap({ agents, selectedId, onSelect, runningAge
         // Compute target position — spiral outward from center
         const goldenAngle = 2.399963; // radians
         const angle = idx * goldenAngle;
-        const radius = Math.min(w, h) * 0.04 * Math.sqrt(idx + 1);
+        const radius = Math.min(w, h) * 0.09 * Math.sqrt(idx + 1);
         const targetX = cx + Math.cos(angle) * radius;
         const targetY = cy + Math.sin(angle) * radius;
 
@@ -225,7 +225,7 @@ export default function ConnectionMap({ agents, selectedId, onSelect, runningAge
           const rdx = n.x - other.x;
           const rdy = n.y - other.y;
           const dist = Math.sqrt(rdx * rdx + rdy * rdy) || 1;
-          if (dist < 100) {
+          if (dist < 160) {
             const force = repulsion / (dist * dist);
             n.x += (rdx / dist) * force * 0.3;
             n.y += (rdy / dist) * force * 0.3;
