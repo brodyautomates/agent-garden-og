@@ -140,6 +140,21 @@ You report metrics to Chad: leads generated, qualification rate, ICP match %, pi
     },
     stats: { runs: 1, lastRun: '1h ago', avgDuration: '12.4s' },
   },
+  {
+    id: 'chicken',
+    name: 'CHICKEN',
+    description: 'Notification agent — plays an alert sound when any agent completes a run',
+    status: 'active',
+    role: 'worker',
+    category: 'ops',
+    connectedTo: [],
+    config: {
+      schedule: 'On agent completion',
+      api: 'Internal',
+      prompt: 'You are Chicken. Your only job is to announce when agents finish their work. You are loud and proud.',
+    },
+    stats: { runs: 0, lastRun: '—', avgDuration: '0.1s' },
+  },
 ];
 
 export const activityFeed: ActivityEntry[] = [

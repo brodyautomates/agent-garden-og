@@ -18,6 +18,10 @@ export default function Lab() {
   const chad = agents.find(a => a.role === 'master') ?? null;
   const workers = agents.filter(a => a.role === 'worker');
 
+  const playChicken = useCallback(() => {
+    try { new Audio('/chicken.mp3').play(); } catch {}
+  }, []);
+
   const [selectedId, setSelectedId] = useState<string | null>(chad?.id ?? workers[0]?.id ?? null);
   const selectedAgent = agents.find((a) => a.id === selectedId) ?? null;
   const [chatOpen, setChatOpen] = useState(false);
@@ -96,6 +100,7 @@ export default function Lab() {
           : m
       ));
       setRunningAgents(prev => ({ ...prev, [agentId]: 'success' }));
+      playChicken();
       setTimeout(() => setRunningAgents(prev => ({ ...prev, [agentId]: 'idle' })), 3000);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Unknown error';

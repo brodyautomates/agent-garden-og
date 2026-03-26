@@ -166,9 +166,9 @@ export default function ChadWidget({ agent, agents, isSelected, onOpenChat, onRu
           disabled={isRunningAll}
           className="px-4 py-1.5 rounded-lg text-[9px] uppercase tracking-wider transition-all cursor-pointer disabled:opacity-40"
           style={{
-            background: 'var(--accent-dim)',
-            color: 'var(--accent)',
-            border: '1px solid var(--border-active)',
+            background: 'var(--chad-red-dim)',
+            color: 'var(--chad-red)',
+            border: '1px solid rgba(255, 51, 51, 0.25)',
             animation: isRunningAll ? 'glow-pulse 1s infinite' : undefined,
           }}
         >

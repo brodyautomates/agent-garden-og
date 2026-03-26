@@ -48,6 +48,7 @@ const AGENT_TAGS: Record<string, string> = {
   vault: 'Finance',
   atlas: 'Operations',
   architect: 'Strategy',
+  chicken: 'Alerts',
 };
 
 const CATEGORY_TAGS: Record<string, string> = {
