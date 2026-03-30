@@ -25,6 +25,7 @@ export interface Agent {
   category: 'outreach' | 'content' | 'ads' | 'ops' | 'research' | 'sales' | 'finance' | 'product' | 'strategy' | 'custom';
   brand?: string;
   connectedTo: string[];
+  version: number;
   config: {
     schedule?: string;
     api?: string;
@@ -89,6 +90,7 @@ export interface OpticsMission {
   status: RunStatus;
   reports: AgentRunReport[];
   communications: AgentCommunication[];
+  version?: number;
 }
 
 // Client Package types (Architect + Forge)
@@ -168,4 +170,5 @@ export interface ActivityEntry {
   agentName: string;
   action: string;
   timestamp: string;
+  version: number;
 }

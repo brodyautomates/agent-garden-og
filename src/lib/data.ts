@@ -8,6 +8,7 @@ export const agents: Agent[] = [
     status: 'active',
     role: 'master',
     category: 'ops',
+    version: 1,
     connectedTo: ['iris', 'architect', 'forge'],
     config: {
       schedule: 'Always on',
@@ -65,6 +66,7 @@ export const agents: Agent[] = [
     status: 'active',
     role: 'worker',
     category: 'sales',
+    version: 2,
     connectedTo: [],
     config: {
       schedule: 'Every 4h',
@@ -117,6 +119,7 @@ You report metrics to Chad: leads generated, qualification rate, ICP match %, pi
     status: 'active',
     role: 'worker',
     category: 'strategy',
+    version: 2,
     connectedTo: ['forge', 'iris'],
     config: {
       schedule: 'On demand',
@@ -132,6 +135,7 @@ You report metrics to Chad: leads generated, qualification rate, ICP match %, pi
     status: 'active',
     role: 'worker',
     category: 'product',
+    version: 2,
     connectedTo: [],
     config: {
       schedule: 'On demand',
@@ -147,6 +151,7 @@ You report metrics to Chad: leads generated, qualification rate, ICP match %, pi
     status: 'active',
     role: 'worker',
     category: 'ops',
+    version: 2,
     connectedTo: [],
     config: {
       schedule: 'On agent completion',
@@ -164,6 +169,7 @@ export const activityFeed: ActivityEntry[] = [
     agentName: 'CHAD',
     action: 'Master agent initialized — beginning market analysis',
     timestamp: '09:00:01',
+    version: 1,
   },
   {
     id: '2',
@@ -171,6 +177,7 @@ export const activityFeed: ActivityEntry[] = [
     agentName: 'CHAD',
     action: 'Deploying first worker agent: IRIS — lead generation engine',
     timestamp: '09:00:14',
+    version: 2,
   },
   {
     id: '3',
@@ -178,6 +185,7 @@ export const activityFeed: ActivityEntry[] = [
     agentName: 'IRIS',
     action: 'Online — ICP defined: CEOs & Founders at 1-200 employee companies in the US',
     timestamp: '09:00:22',
+    version: 2,
   },
   {
     id: '4',
@@ -185,6 +193,7 @@ export const activityFeed: ActivityEntry[] = [
     agentName: 'CHAD',
     action: 'Dispatching IRIS — execute lead search via Apollo',
     timestamp: '09:01:00',
+    version: 2,
   },
   {
     id: '5',
@@ -192,6 +201,7 @@ export const activityFeed: ActivityEntry[] = [
     agentName: 'IRIS',
     action: 'Apollo search complete — 25 leads from 14,832 matches (ICP score 60+)',
     timestamp: '09:01:03',
+    version: 2,
   },
   {
     id: '6',
@@ -199,6 +209,7 @@ export const activityFeed: ActivityEntry[] = [
     agentName: 'IRIS',
     action: 'Top lead: Sarah Chen, CEO @ AutomateFlow (SaaS, 42 employees, Series A)',
     timestamp: '09:01:03',
+    version: 2,
   },
   {
     id: '7',
@@ -206,6 +217,7 @@ export const activityFeed: ActivityEntry[] = [
     agentName: 'CHAD',
     action: 'IRIS delivered 25 qualified leads — pipeline value est. $47,500',
     timestamp: '09:01:05',
+    version: 2,
   },
   {
     id: '8',
@@ -213,6 +225,7 @@ export const activityFeed: ActivityEntry[] = [
     agentName: 'CHAD',
     action: 'Run #2 dispatched — expanding search to include COO and Head of Ops titles',
     timestamp: '09:15:00',
+    version: 2,
   },
   {
     id: '9',
@@ -220,6 +233,7 @@ export const activityFeed: ActivityEntry[] = [
     agentName: 'IRIS',
     action: 'Apollo search complete — 25 leads from 8,491 matches (expanded titles)',
     timestamp: '09:15:03',
+    version: 2,
   },
   {
     id: '10',
@@ -227,6 +241,7 @@ export const activityFeed: ActivityEntry[] = [
     agentName: 'CHAD',
     action: 'Total pipeline: 50 leads, est. $95,000 in deal value. Sales dept warming up.',
     timestamp: '09:15:05',
+    version: 2,
   },
   {
     id: '11',
@@ -234,6 +249,7 @@ export const activityFeed: ActivityEntry[] = [
     agentName: 'CHAD',
     action: 'Deploying ARCHITECT — client package designer for intake-to-deliverable pipeline',
     timestamp: '10:00:00',
+    version: 2,
   },
   {
     id: '12',
@@ -241,6 +257,7 @@ export const activityFeed: ActivityEntry[] = [
     agentName: 'ARCHITECT',
     action: 'Online — ready to receive client intake forms and generate tailored packages',
     timestamp: '10:00:05',
+    version: 2,
   },
   {
     id: '13',
@@ -248,6 +265,7 @@ export const activityFeed: ActivityEntry[] = [
     agentName: 'ARCHITECT',
     action: 'Generated client package for GrowthStack AI — ICP, 4 emails, landing copy, scoring config (8.2s)',
     timestamp: '10:30:08',
+    version: 2,
   },
   {
     id: '14',
@@ -255,6 +273,7 @@ export const activityFeed: ActivityEntry[] = [
     agentName: 'CHAD',
     action: 'Deploying FORGE — landing page builder with Vercel deployment',
     timestamp: '10:35:00',
+    version: 2,
   },
   {
     id: '15',
@@ -262,6 +281,7 @@ export const activityFeed: ActivityEntry[] = [
     agentName: 'FORGE',
     action: 'Online — ready to build and deploy landing pages from Architect packages',
     timestamp: '10:35:03',
+    version: 2,
   },
   {
     id: '16',
@@ -269,6 +289,7 @@ export const activityFeed: ActivityEntry[] = [
     agentName: 'FORGE',
     action: 'Built and deployed landing page for GrowthStack AI — dark theme, responsive, CTA-optimized (12.4s)',
     timestamp: '10:45:12',
+    version: 2,
   },
 ];
 
@@ -281,6 +302,7 @@ export const sampleMissions: OpticsMission[] = [
     triggeredBy: 'chad',
     startedAt: '09:01:00',
     status: 'success',
+    version: 2,
     reports: [
       {
         id: 'report-001',
@@ -359,6 +381,7 @@ export const sampleMissions: OpticsMission[] = [
     triggeredBy: 'chad',
     startedAt: '09:15:00',
     status: 'success',
+    version: 2,
     reports: [
       {
         id: 'report-002',
@@ -435,6 +458,7 @@ export const sampleMissions: OpticsMission[] = [
     triggeredBy: 'chad',
     startedAt: '10:30:00',
     status: 'success',
+    version: 2,
     reports: [{
       id: 'report-003',
       agentId: 'architect',
@@ -470,6 +494,7 @@ export const sampleMissions: OpticsMission[] = [
     triggeredBy: 'architect',
     startedAt: '10:45:00',
     status: 'success',
+    version: 2,
     reports: [{
       id: 'report-004',
       agentId: 'forge',

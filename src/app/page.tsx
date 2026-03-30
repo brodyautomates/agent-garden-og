@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import ConnectionMap from '@/components/ConnectionMap';
 import AgentRegistry from '@/components/AgentRegistry';
 import AgentWorkspace from '@/components/AgentWorkspace';
@@ -8,13 +8,21 @@ import ActivityFeed from '@/components/ActivityFeed';
 import ChadWidget from '@/components/ChadWidget';
 import ChadChatOverlay from '@/components/ChadChatOverlay';
 import OpticsOverlay from '@/components/OpticsOverlay';
-import { agents, activityFeed, sampleMissions } from '@/lib/data';
+import VersionSelector from '@/components/VersionSelector';
+import { agents as allAgents, activityFeed as allActivity, sampleMissions as allMissions } from '@/lib/data';
 import { RunStatus, OpticsMission, AgentRunReport, AgentCommunication } from '@/lib/types';
+import { VersionProvider, useVersion } from '@/lib/version-context';
 
 const now = () => new Date().toLocaleTimeString('en-US', { hour12: false });
 const uid = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
-export default function Lab() {
+function LabContent() {
+  const { currentVersion, isFeatureAvailable } = useVersion();
+
+  const agents = useMemo(() => allAgents.filter(a => a.version <= currentVersion), [currentVersion]);
+  const filteredActivity = useMemo(() => allActivity.filter(a => a.version <= currentVersion), [currentVersion]);
+  const filteredMissions = useMemo(() => allMissions.filter(m => !m.version || m.version <= currentVersion), [currentVersion]);
+
   const chad = agents.find(a => a.role === 'master') ?? null;
   const workers = agents.filter(a => a.role === 'worker');
 
@@ -27,7 +35,15 @@ export default function Lab() {
   const [chatOpen, setChatOpen] = useState(false);
   const [opticsOpen, setOpticsOpen] = useState(false);
   const [runningAgents, setRunningAgents] = useState<Record<string, RunStatus>>({});
-  const [missions, setMissions] = useState<OpticsMission[]>(sampleMissions);
+  const [missions, setMissions] = useState<OpticsMission[]>(filteredMissions);
+
+  // Reset selection when version changes and selected agent disappears
+  useEffect(() => {
+    if (selectedId && !agents.find(a => a.id === selectedId)) {
+      setSelectedId(chad?.id ?? null);
+    }
+    setMissions(filteredMissions);
+  }, [currentVersion]);
 
   const activeCount = agents.filter((a) => a.status === 'active').length;
 
@@ -127,7 +143,7 @@ export default function Lab() {
       setRunningAgents(prev => ({ ...prev, [agentId]: 'error' }));
       setTimeout(() => setRunningAgents(prev => ({ ...prev, [agentId]: 'idle' })), 3000);
     }
-  }, [runningAgents]);
+  }, [agents, runningAgents]);
 
   const handleRunAll = useCallback(async () => {
     const activeWorkers = workers.filter(w => w.status === 'active');
@@ -137,6 +153,9 @@ export default function Lab() {
   }, [workers, handleRunAgent]);
 
   const isRunningAll = workers.some(w => runningAgents[w.id] === 'running');
+
+  const showOptics = isFeatureAvailable('OpticsOverlay');
+  const showActivityFeed = isFeatureAvailable('ActivityFeed');
 
   return (
     <div className="h-screen flex flex-col bg-[var(--bg-primary)]">
@@ -150,23 +169,25 @@ export default function Lab() {
         </div>
         <div className="flex items-center gap-5">
           {/* Optics button */}
-          <button
-            onClick={() => setOpticsOpen(true)}
-            className="px-3 py-1.5 rounded-lg text-[10px] uppercase tracking-wider transition-all flex items-center gap-2"
-            style={{
-              background: missions.length > 0 ? 'var(--accent-dim)' : 'var(--bg-card)',
-              color: missions.length > 0 ? 'var(--accent)' : 'var(--text-muted)',
-              border: `1px solid ${missions.length > 0 ? 'var(--border-active)' : 'var(--border)'}`,
-              boxShadow: missions.length > 0 ? '0 0 12px rgba(0, 255, 136, 0.08)' : 'none',
-            }}
-          >
-            Optics
-            {missions.length > 0 && (
-              <span className="text-[8px] mono bg-[var(--accent)] text-[var(--bg-primary)] w-4 h-4 rounded-full flex items-center justify-center">
-                {missions.length}
-              </span>
-            )}
-          </button>
+          {showOptics && (
+            <button
+              onClick={() => setOpticsOpen(true)}
+              className="px-3 py-1.5 rounded-lg text-[10px] uppercase tracking-wider transition-all flex items-center gap-2"
+              style={{
+                background: missions.length > 0 ? 'var(--accent-dim)' : 'var(--bg-card)',
+                color: missions.length > 0 ? 'var(--accent)' : 'var(--text-muted)',
+                border: `1px solid ${missions.length > 0 ? 'var(--border-active)' : 'var(--border)'}`,
+                boxShadow: missions.length > 0 ? '0 0 12px rgba(0, 255, 136, 0.08)' : 'none',
+              }}
+            >
+              Optics
+              {missions.length > 0 && (
+                <span className="text-[8px] mono bg-[var(--accent)] text-[var(--bg-primary)] w-4 h-4 rounded-full flex items-center justify-center">
+                  {missions.length}
+                </span>
+              )}
+            </button>
+          )}
           <div className="h-5 w-px bg-[var(--border)]" />
           <div className="flex items-center gap-2 text-[12px] text-[var(--text-secondary)]">
             <span className="flex items-center gap-1.5">
@@ -181,6 +202,8 @@ export default function Lab() {
             <div className="w-2 h-2 rounded-full bg-[var(--accent)]" />
             <span className="text-[11px] text-[var(--text-muted)]">System online</span>
           </div>
+          <div className="h-5 w-px bg-[var(--border)]" />
+          <VersionSelector />
         </div>
       </header>
 
@@ -204,16 +227,26 @@ export default function Lab() {
           <AgentRegistry agents={workers} selectedId={selectedId} onSelect={setSelectedId} onRunAgent={handleRunAgent} runningAgents={runningAgents} />
         </div>
         <div className="flex-1 min-w-0">
-          <AgentWorkspace agent={selectedAgent} agents={agents} activity={activityFeed} onRunAgent={handleRunAgent} runningAgents={runningAgents} missions={missions} />
+          <AgentWorkspace agent={selectedAgent} agents={agents} activity={filteredActivity} onRunAgent={handleRunAgent} runningAgents={runningAgents} missions={missions} />
         </div>
-        <div className="w-80 shrink-0">
-          <ActivityFeed activity={activityFeed} onClickAgent={setSelectedId} />
-        </div>
+        {showActivityFeed && (
+          <div className="w-80 shrink-0">
+            <ActivityFeed activity={filteredActivity} onClickAgent={setSelectedId} />
+          </div>
+        )}
       </div>
 
       {/* Overlays */}
       {chad && <ChadChatOverlay isOpen={chatOpen} onClose={() => setChatOpen(false)} agent={chad} />}
-      <OpticsOverlay isOpen={opticsOpen} onClose={() => setOpticsOpen(false)} missions={missions} agents={agents} />
+      {showOptics && <OpticsOverlay isOpen={opticsOpen} onClose={() => setOpticsOpen(false)} missions={missions} agents={agents} />}
     </div>
+  );
+}
+
+export default function Lab() {
+  return (
+    <VersionProvider>
+      <LabContent />
+    </VersionProvider>
   );
 }
