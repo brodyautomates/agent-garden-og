@@ -90,6 +90,16 @@ function LabContent() {
         const data = await res.json();
         output = data;
         outputSummary = `Found ${data.leads?.length || 0} leads from ${(data.total || 0).toLocaleString()} matches`;
+      } else if (agentId === 'roulette') {
+        const res = await fetch('/api/agents/roulette/scrape', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: 'landing page designer' }),
+        });
+        if (!res.ok) throw new Error(`Fiverr scrape returned ${res.status}`);
+        const data = await res.json();
+        output = data;
+        outputSummary = `Found ${data.candidates?.length || 0} Fiverr candidates — wheel ready to spin`;
       } else {
         await new Promise(r => setTimeout(r, 1000 + Math.random() * 1000));
         outputSummary = `${agent.name} ready — no API endpoint configured yet`;

@@ -5,6 +5,7 @@ import MasterWorkspace from './MasterWorkspace';
 import IrisWorkspace from './IrisWorkspace';
 import ArchitectWorkspace from './ArchitectWorkspace';
 import ForgeWorkspace from './ForgeWorkspace';
+import RouletteWorkspace from './RouletteWorkspace';
 
 const statusColor: Record<string, string> = {
   active: '#00ff88',
@@ -61,6 +62,11 @@ export default function AgentWorkspace({ agent, agents, activity, onRunAgent, ru
   // Forge — landing page builder
   if (agent.id === 'forge') {
     return <ForgeWorkspace agent={agent} activity={activity} onRunAgent={onRunAgent} runStatus={runningAgents['forge'] || 'idle'} missions={missions} />;
+  }
+
+  // Roulette — talent roulette
+  if (agent.id === 'roulette') {
+    return <RouletteWorkspace agent={agent} activity={activity} onRunAgent={onRunAgent} runStatus={runningAgents['roulette'] || 'idle'} missions={missions} />;
   }
 
   const agentActivity = activity.filter((a) => a.agentId === agent.id).slice(0, 10);

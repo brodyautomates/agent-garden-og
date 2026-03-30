@@ -49,6 +49,7 @@ const AGENT_TAGS: Record<string, string> = {
   atlas: 'Operations',
   architect: 'Strategy',
   chicken: 'Alerts',
+  roulette: 'Talent',
 };
 
 const CATEGORY_TAGS: Record<string, string> = {

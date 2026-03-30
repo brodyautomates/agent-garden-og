@@ -172,3 +172,24 @@ export interface ActivityEntry {
   timestamp: string;
   version: number;
 }
+
+// Roulette types (EP 3)
+export type FiverrLevel = 'new' | 'level_1' | 'level_2' | 'top_rated';
+export type OutreachStatus = 'pending' | 'sent' | 'accepted' | 'declined' | 'replaced' | 'working' | 'delivered';
+export type RoulettePhase = 'config' | 'scraping' | 'candidates' | 'spinning' | 'outreach' | 'contract';
+
+export interface FiverrCandidate {
+  id: string;
+  username: string;
+  displayName: string;
+  rating: number;
+  reviewCount: number;
+  price: number;
+  deliveryDays: number;
+  profileUrl: string;
+  avatarUrl: string | null;
+  level: FiverrLevel;
+  title: string;
+  description: string;
+  isGood: boolean;
+}

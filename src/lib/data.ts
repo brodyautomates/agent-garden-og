@@ -9,7 +9,7 @@ export const agents: Agent[] = [
     role: 'master',
     category: 'ops',
     version: 1,
-    connectedTo: ['iris', 'architect', 'forge'],
+    connectedTo: ['iris', 'architect', 'forge', 'roulette'],
     config: {
       schedule: 'Always on',
       api: 'Anthropic API, Internal',
@@ -36,6 +36,7 @@ export const agents: Agent[] = [
       buildQueue: [
         { name: 'ARCHITECT', department: 'Strategy', purpose: 'Client package designer — ICP, emails, landing copy, scoring', status: 'deployed', priority: 0 },
         { name: 'FORGE', department: 'Product', purpose: 'Landing page builder + Vercel deployment', status: 'deployed', priority: 0 },
+        { name: 'ROULETTE', department: 'Operations', purpose: 'Freelancer sourcing via Fiverr — gamified talent selection', status: 'deployed', priority: 0 },
         { name: 'NOVA', department: 'Marketing', purpose: 'Brand identity, positioning, and visual system', status: 'queued', priority: 1 },
         { name: 'SCOUT', department: 'Sales', purpose: 'Market research, niche validation, and competitor analysis', status: 'queued', priority: 2 },
         { name: 'ECHO', department: 'Marketing', purpose: 'Content engine — social, email, SEO', status: 'queued', priority: 3 },
@@ -159,6 +160,22 @@ You report metrics to Chad: leads generated, qualification rate, ICP match %, pi
       prompt: 'You are Chicken. Your only job is to announce when agents finish their work. You are loud and proud.',
     },
     stats: { runs: 0, lastRun: '—', avgDuration: '0.1s' },
+  },
+  {
+    id: 'roulette',
+    name: 'ROULETTE',
+    description: 'Talent roulette — scrapes Fiverr for freelancers, spins the wheel, and auto-assigns work to the winner',
+    status: 'active',
+    role: 'worker',
+    category: 'ops',
+    version: 3,
+    connectedTo: ['forge'],
+    config: {
+      schedule: 'On demand',
+      api: 'Fiverr Scraper, Fiverr Inbox',
+      prompt: 'You are Roulette. You find 6 freelancers on Fiverr — 5 good ones and 1 intentionally bad one. You spin the wheel to pick one at random, then send them instructions to build a landing page, film a VSL video, and fulfill the offer. If they quit or ghost, you replace them and spin again. The chaos is the point.',
+    },
+    stats: { runs: 0, lastRun: '—', avgDuration: '—' },
   },
 ];
 
@@ -290,6 +307,22 @@ export const activityFeed: ActivityEntry[] = [
     action: 'Built and deployed landing page for GrowthStack AI — dark theme, responsive, CTA-optimized (12.4s)',
     timestamp: '10:45:12',
     version: 2,
+  },
+  {
+    id: '17',
+    agentId: 'chad',
+    agentName: 'CHAD',
+    action: 'Deploying ROULETTE — talent acquisition via Fiverr with gamified selection',
+    timestamp: '11:00:00',
+    version: 3,
+  },
+  {
+    id: '18',
+    agentId: 'roulette',
+    agentName: 'ROULETTE',
+    action: 'Online — ready to scrape Fiverr and spin the wheel for freelancer selection',
+    timestamp: '11:00:05',
+    version: 3,
   },
 ];
 

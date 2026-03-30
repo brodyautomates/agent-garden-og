@@ -5,7 +5,7 @@ export interface VersionMeta {
   features: string[];
 }
 
-export const CURRENT_VERSION = 2;
+export const CURRENT_VERSION = 3;
 
 export const VERSION_REGISTRY: VersionMeta[] = [
   {
@@ -19,5 +19,11 @@ export const VERSION_REGISTRY: VersionMeta[] = [
     label: 'EP 2',
     subtitle: 'First Agents',
     features: ['IrisWorkspace', 'ArchitectWorkspace', 'ForgeWorkspace', 'OpticsOverlay', 'ActivityFeed'],
+  },
+  {
+    version: 3,
+    label: 'EP 3',
+    subtitle: 'Talent Roulette',
+    features: ['RouletteWorkspace'],
   },
 ];
